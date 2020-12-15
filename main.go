@@ -1,8 +1,12 @@
+<<<<<<< HEAD
 // main
+=======
+>>>>>>> 452e7828ec81fcc6920c650941bf76d7e6b0f36b
 package main
 
 import (
 	"fmt"
+<<<<<<< HEAD
 	"html/template"
 	"log"
 	"net/http"
@@ -36,4 +40,10 @@ func main() {
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
+=======
+)
+
+func main() {
+	fmt.Print("helloworld")
+>>>>>>> 452e7828ec81fcc6920c650941bf76d7e6b0f36b
 }
