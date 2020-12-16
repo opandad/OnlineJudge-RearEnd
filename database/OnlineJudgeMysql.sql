@@ -1,42 +1,67 @@
 /*
 作者：唐仕航
 功能：建立oj的mysql数据库
-日期：2020.12.4 16：22
+日期：2020.12.4
 版本：0.0.1
 */
 create database online_judge;
 use online_judge;
 
--- 问题集合，这里只是做个索引，问题储存是放在mongodb中
-CREATE TABLE IF NOT EXISTS problem_set_table(
-	`problem_id` int unsigned auto_increment,
-	`problem_name` TINYTEXT,
-	`is_robot_problem` bool,
-	`problem_accept_number` int unsigned,
-	`problem_fail_number` int unsigned,
-	primary key(`problem_id`)
-)DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS problem_set(
+	`id` int unsigned auto_increment,
+	`name` TINYTEXT,			--问题名称
+	`problem_description` json,		--包含下面注释的几个模块
+	/*
+	`problem_description` text，            --问题描述
+        `problem_input_description` text,       --输入描述
+        `problem_output_description` text,      --输出描述
+        `problem_input_sample_data` text,       --输入样例
+        `problem_output_sample_data` text,      --输出样例
+        `problem_tips` text,                    --提示
+	*/
+	`accept` int unsigned,			--通过数
+	`fail` int unsigned,			--未通过数（计算百分比做数据统计用）
+	`judgeer_info` json, 			--负责储存判题地址，因为可能是爬虫下来的题目
+	/*
+	先判定是否为爬虫，如为爬虫分两步走
+	is_robot_problem:true,
+	judgger:{
+		HDU:{
+		}
+		other:{
+		}
+	}
 
-create table IF NOT EXISTS user_table(
-	`user_email` char(30),
-	`user_name` char(20),
-	`user_password` char(30),
-	`user_authority` int,
-	primary key(`user_email`)
-);
 
-create table IF NOT EXISTS contest_table(
-	`contest_id` int unsigned auto_increment,
-	`contest_name` tinytext,
-	`contest_start_time` datetime,
-	`contest_end_time` datetime, -- 可能需要修改
+	is_robot_problem:false,
+	language:{
+		--sample
+		"g++":"1000"			--单位（毫秒）
+	}					--存储语言和时间，到本地判题
+	*/
+	primary key(`id`)
+)DEFAULT CHARSET=utf8 ENGINE=INNODB;
+
+-- 没有使用check检查
+create table IF NOT EXISTS user(
+	`email` char(30),
+	`name` char(20),
+	`password` char(30),
+	`authority` int unsigned,
+	primary key(`email`)
+)ENGINE=INNODB;
+
+create table IF NOT EXISTS contest(
+	`id` int unsigned auto_increment,
+	`name` tinytext,
+	`start_time` datetime,
+	`end_time` datetime, -- 可能需要修改
 	`is_official_match` bool,
-	primary key(`contest_id`)
-);
+	primary key(`id`)
+)ENGINE=INNODB;
 
-
-create table IF NOT EXISTS submit_status_table(
-	`submit_id` int unsigned,
+create table IF NOT EXISTS submit_status(
+	`submit_id` int unsigned auto_increment,
 	`problem_id` int unsigned,
 	`submit_state` char(50),
 	`return_result` text,
@@ -46,26 +71,26 @@ create table IF NOT EXISTS submit_status_table(
 	`user_email` char(30),
 	`run_time` smallint unsigned,
 	primary key(`submit_id`)
-);
+)ENGINE=INNODB;
 
 
-create table IF NOT EXISTS support_language_table(
+create table IF NOT EXISTS support_language(
 	`language` char(50),
 	`submit_command` text,
 	primary key(`language`)
-);
+)ENGINE=INNODB;
 
-
--- 有bug，主键唯一bug，需要修改
-create table IF NOT EXISTS offical_contest_users_table(
+create table IF NOT EXISTS offical_contest_users(
+	`id` int unsigned auto_increment,
 	`contest_id` int unsigned,
 	`user_email` char(30),
-	primary key(`contest_id`)
-);
+	primary key(`id`)
+)ENGINE=INNODB;
 
 -- 有bug，主键唯一bug，需要修改
-create table IF NOT EXISTS contest_problem_table(
+create table IF NOT EXISTS contest_problem(
+	`id` int unsigned auto_increment,
 	`contest_id` int unsigned,
 	`problem_id` int unsigned,
-	primary key(`contest_id`)
-);
+	primary key(`id`)
+)ENGINE=INNODB;
