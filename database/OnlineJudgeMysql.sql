@@ -18,25 +18,24 @@ CREATE TABLE IF NOT EXISTS problem_set(
         `problem_input_sample_data` text,       --输入样例
         `problem_output_sample_data` text,      --输出样例
         `problem_tips` text,                    --提示
+	`author`
 	*/
 	`accept` int unsigned,			--通过数
 	`fail` int unsigned,			--未通过数（计算百分比做数据统计用）
-	`judgeer_info` json, 			--负责储存判题地址，因为可能是爬虫下来的题目
+	`judgeer_info` json, 			--负责储存判题地址，因为可能是爬虫下来的题目，存储格式为以下注释
 	/*
-	先判定是否为爬虫，如为爬虫分两步走
+						--先判定是否为爬虫，如为爬虫分两步走
 	is_robot_problem:true,
-	judgger:{
-		HDU:{
-		}
-		other:{
-		}
-	}
+	judgger:xxxOJ
+	oj_problem_id:1000
 
 
 	is_robot_problem:false,
-	language:{
+
+
+	language:{				--必定存储的语言及判题方式，或着直接爬
 		--sample
-		"g++":"1000"			--单位（毫秒）
+		"g++":1000			--单位（毫秒）
 	}					--存储语言和时间，到本地判题
 	*/
 	primary key(`id`)
@@ -46,7 +45,7 @@ CREATE TABLE IF NOT EXISTS problem_set(
 create table IF NOT EXISTS user(
 	`email` char(30),
 	`name` char(20),
-	`password` char(30),
+	`password` char(30) is not null,
 	`authority` int unsigned,
 	primary key(`email`)
 )ENGINE=INNODB;
@@ -55,20 +54,33 @@ create table IF NOT EXISTS contest(
 	`id` int unsigned auto_increment,
 	`name` tinytext,
 	`start_time` datetime,
-	`end_time` datetime, -- 可能需要修改
-	`is_official_match` bool,
+	`end_time` datetime, 			--可能需要修改
+	`match_info` json,				--负责开关，以及比赛用户过滤，存储注释内的内容
+	/*
+	--判断两步走
+	--true存储大量相关信息
+	is_official_match:true
+		password:
+		user:[]				--存储比赛用户
+		organizer:			--举办方
+		sponsor:			--赞助方
+
+	--false不存储任何信息
+	is_official_match:false
+	*/
+	`problem_id` json,			--负责存储题目编号方便读取
 	primary key(`id`)
 )ENGINE=INNODB;
 
 create table IF NOT EXISTS submit_status(
 	`submit_id` int unsigned auto_increment,
-	`problem_id` int unsigned,
+	`problem_id` int unsigned is not null,
 	`submit_state` char(50),
 	`return_result` text,
 	`submit_time` datetime,
 	`language` char(50),
 	`contest_id` int unsigned,
-	`user_email` char(30),
+	`user_email` char(30) is not null,
 	`run_time` smallint unsigned,
 	primary key(`submit_id`)
 )ENGINE=INNODB;
@@ -78,19 +90,4 @@ create table IF NOT EXISTS support_language(
 	`language` char(50),
 	`submit_command` text,
 	primary key(`language`)
-)ENGINE=INNODB;
-
-create table IF NOT EXISTS offical_contest_users(
-	`id` int unsigned auto_increment,
-	`contest_id` int unsigned,
-	`user_email` char(30),
-	primary key(`id`)
-)ENGINE=INNODB;
-
--- 有bug，主键唯一bug，需要修改
-create table IF NOT EXISTS contest_problem(
-	`id` int unsigned auto_increment,
-	`contest_id` int unsigned,
-	`problem_id` int unsigned,
-	primary key(`id`)
 )ENGINE=INNODB;
