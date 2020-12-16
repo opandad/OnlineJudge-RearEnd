@@ -3,9 +3,11 @@
 功能：建立oj的mysql数据库
 日期：2020.12.16
 版本：0.0.2
+mysql版本：8.0.22
 */
 create database online_judge;
 use online_judge;
+
 
 CREATE TABLE IF NOT EXISTS problems(
 	`id` int unsigned auto_increment,
@@ -39,7 +41,7 @@ CREATE TABLE IF NOT EXISTS problems(
 	}					-- 存储语言和时间，到本地判题
 	*/
 	primary key(`id`)
-)DEFAULT CHARSET=utf8 ENGINE=INNODB;
+)ENGINE=INNODB;
 
 -- 没有使用check检查
 create table IF NOT EXISTS user(
