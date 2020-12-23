@@ -49,9 +49,9 @@ create table IF NOT EXISTS contest(
 	`id` int unsigned auto_increment,
 	`name` tinytext,
 	`start_time` datetime,
-	`contest_length` time,
+	`duration` time,
 	`contest_info` json,			-- 负责开关，以及比赛用户过滤，存储注释内的内容
-	`is_official_match` boolean,
+	`is_official_contest` boolean,
 	/*
 	-- 判断两步走
 	-- true存储大量相关信息

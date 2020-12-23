@@ -1,0 +1,9 @@
+[2020-12-23 17:03:05.672] [sharedprocess] [info] main {"machineId":"b1306ccdad830c618fa0642a6fb17ba23fc829110ee4822ad57c45aebee84f02","windowId":2}
+[2020-12-23 17:03:05.843] [sharedprocess] [error] [File Watcher (node.js)] Error: ENOENT: no such file or directory, stat '/home/t/OnlineJudge/OnlineJudge-RearEnd/=~/.vscode-root/User/snippets'
+[2020-12-23 17:03:24.985] [sharedprocess] [info] Installing extension: golang.go
+[2020-12-23 17:03:26.033] [sharedprocess] [info] Downloaded extension: golang.go undefined
+[2020-12-23 17:03:26.312] [sharedprocess] [info] Extracted extension to /root/.vscode/extensions/.golang.go-0.20.0: golang.go
+[2020-12-23 17:03:26.313] [sharedprocess] [info] Renamed to /root/.vscode/extensions/golang.go-0.20.0
+[2020-12-23 17:03:26.316] [sharedprocess] [info] Installation completed. golang.go
+[2020-12-23 17:03:26.322] [sharedprocess] [info] Extensions installed successfully: golang.go
+[2020-12-23 17:03:45.716] [sharedprocess] [info] Starting to clean up unused language packs.

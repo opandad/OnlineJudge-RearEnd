@@ -1,49 +1,39 @@
-<<<<<<< HEAD
-// main
-=======
->>>>>>> 452e7828ec81fcc6920c650941bf76d7e6b0f36b
 package main
 
 import (
+	"database/sql"
 	"fmt"
-<<<<<<< HEAD
-	"html/template"
-	"log"
-	"net/http"
-	"strings"
+	"time"
 )
 
-func PrintServerInfo(r *http.Request) {
-	r.ParseForm()
-	fmt.Println(r.Form)
-	fmt.Println("path: ", r.URL.Path)
-	fmt.Println("scheme: ", r.URL.Scheme)
-	fmt.Println(r.Form["url_long"])
-	for k, v := range r.Form {
-		fmt.Println("key: ", k)
-		fmt.Println("val: ", strings.Join(v, ""))
-	}
-}
-
-//主页
-func Index(w http.ResponseWriter, r *http.Request) {
-	PrintServerInfo(r)
-	t := template.New("some template")
-
-	t, _ = t.ParseFiles("dist/index.html", nil)
-	t.Execute(w)
-}
-
 func main() {
-	http.HandleFunc("/dist", Index)
-	err := http.ListenAndServe(":9090", nil)
+	db, err := sql.Open("mysql", "root:qweasd@/online_judge")
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+		panic(err.Error())
 	}
-=======
-)
+	defer db.Close()
 
-func main() {
-	fmt.Print("helloworld")
->>>>>>> 452e7828ec81fcc6920c650941bf76d7e6b0f36b
+	// Prepare statement for inserting data
+	stmtIns, err := db.Prepare("INSERT INTO contest (name, start_time, duration, contest_info, is_official_contest, problem_id) VALUES(?, ?, ?, ?, ?, ?)")
+	if err != nil {
+		panic(err.Error())
+	}
+	defer stmtIns.Close()
+
+	// Prepare statement for reading data
+	stmtOut, err := db.Prepare("SELECT * FROM contest")
+	if err != nil {
+		panic(err.Error()) // proper error handling instead of panic in your app
+	}
+	defer stmtOut.Close()
+
+	// Insert square numbers for 0-24 in the database
+	_, err = stmtIns.Exec("0", time.Now(), 0, 0, 0, 0)
+
+	// Query the square-number of 13
+	err = stmtOut.QueryRow(0).Scan() // WHERE number = 13
+	if err != nil {
+		panic(err.Error()) // proper error handling instead of panic in your app
+	}
+	fmt.Printf("testtest")
 }

@@ -1,0 +1,10 @@
+{
+    "[json]": {
+        "editor.quickSuggestions": {
+            "strings": true
+        },
+        "editor.suggest.insertMode": "replace"
+    },
+    "http.proxy": "http://192.168.121.1:10809",
+    "go.useLanguageServer": true
+}

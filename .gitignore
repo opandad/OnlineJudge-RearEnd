@@ -1,8 +1,6 @@
-<<<<<<< HEAD
 /dist
 *.swp
 
->>>>>>> 452e7828ec81fcc6920c650941bf76d7e6b0f36b
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -17,8 +15,4 @@
 *.out
 
 # Dependency directories (remove the comment below to include it)
-<<<<<<< HEAD
 # vendor/
-=======
-# vendor/
->>>>>>> 452e7828ec81fcc6920c650941bf76d7e6b0f36b
