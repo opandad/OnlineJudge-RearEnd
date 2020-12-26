@@ -4,10 +4,12 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-	db, err := sql.Open("mysql", "root:qweasd@/online_judge")
+	db, err := sql.Open("192.168.121.1:3306", "remoteuser:remoteuser@/online_judge")
 	if err != nil {
 		panic(err.Error())
 	}
