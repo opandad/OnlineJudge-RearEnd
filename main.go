@@ -9,21 +9,21 @@ import (
 )
 
 func main() {
-	db, err := sql.Open("192.168.121.1:3306", "remoteuser:remoteuser@/online_judge")
+	db, err := sql.Open("192.168.121.131:3306", "online_judge_admin:qweasd@/online_judge")
 	if err != nil {
 		panic(err.Error())
 	}
 	defer db.Close()
 
 	// Prepare statement for inserting data
-	stmtIns, err := db.Prepare("INSERT INTO contest (name, start_time, duration, contest_info, is_official_contest, problem_id) VALUES(?, ?, ?, ?, ?, ?)")
+	stmtIns, err := db.Prepare("INSERT INTO `online_judge`.`contest_has_problems` (`contest_id`, `problems_id`) VALUES (2, 1);")
 	if err != nil {
 		panic(err.Error())
 	}
 	defer stmtIns.Close()
 
 	// Prepare statement for reading data
-	stmtOut, err := db.Prepare("SELECT * FROM contest")
+	stmtOut, err := db.Prepare("SELECT * FROM contest_has_problems")
 	if err != nil {
 		panic(err.Error()) // proper error handling instead of panic in your app
 	}

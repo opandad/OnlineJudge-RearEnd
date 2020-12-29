@@ -1,4 +1,5 @@
 /dist
+/config
 *.swp
 /=~
 # Binaries for programs and plugins
