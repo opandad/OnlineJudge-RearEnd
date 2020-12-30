@@ -1,7 +1,11 @@
 /dist
 /config
+
 *.swp
-/=~
+
+/bin
+/pkg
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
