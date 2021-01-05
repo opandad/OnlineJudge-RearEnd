@@ -1,5 +1,10 @@
 package user
 
+import (
+	"OnlineJudge-RearEnd/database"
+	"fmt"
+)
+
 type User struct {
 	id        int
 	email     string
@@ -10,24 +15,17 @@ type User struct {
 }
 
 func LoginUseEmail() {
-	// sqlDB, err := sql.Open("mysql", "online_judge")
-	// if err != nil {
-	// 	fmt.Println("Open connection fail!", err)
-	// }
+	db := database.GetDatabaseConnection()
 
-	// gormDB, err := gorm.Open(mysql.New(mysql.Config{
-	// 	Conn: sqlDB,
-	// }), &gorm.Config{})
+	sqlDB, err := db.DB()
 
-	// sqlDB.Ping()
-	// fmt.Println(gormDB)
+	if err != nil {
+		fmt.Println(err)
+	}
+	for true {
+		fmt.Println(sqlDB.Ping())
+	}
 
-	// sqlDB, err := gorm.DB()
-
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-	// sqlDB.Ping()
 }
 
 func Register() {
