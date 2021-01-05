@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -19,10 +20,13 @@ type DatabaseConfig struct {
 	DatabaseEncode string `json:"DatabaseEncode"`
 }
 
+var db *gorm.DB
+
 func ConnectDatabase() {
 	file, err := os.Open("./config/database.json")
 	if err != nil {
 		fmt.Println("Open database config file fail!", err.Error())
+		return
 	} else {
 		fmt.Println("Open database config file success!")
 	}
@@ -37,12 +41,15 @@ func ConnectDatabase() {
 	if err != nil {
 		fmt.Println("Connect database fail. Please check database connect config!")
 		fmt.Println(err)
+		return
 	} else {
 		fmt.Println("Connect database success!")
 		fmt.Println(db)
 	}
-}
 
-func OperationDatabase() {
-
+	//设置连接池
+	sqlDB, err := db.DB()
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxLifetime(time.Hour)
 }
