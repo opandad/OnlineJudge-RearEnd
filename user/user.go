@@ -15,17 +15,10 @@ type User struct {
 }
 
 func LoginUseEmail() {
+	fmt.Println("login use email")
 	db := database.GetDatabaseConnection()
 
-	sqlDB, err := db.DB()
-
-	if err != nil {
-		fmt.Println(err)
-	}
-	for true {
-		fmt.Println(sqlDB.Ping())
-	}
-
+	fmt.Println(db)
 }
 
 func Register() {

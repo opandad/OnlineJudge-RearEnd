@@ -2,38 +2,63 @@ package database
 
 import (
 	"OnlineJudge-RearEnd/config"
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-// type DatabaseConfig struct {
-// 	ServerIP       string `json:"ServerIP"`
-// 	Port           string `json:"ServerPort"`
-// 	User           string `json:"User"`
-// 	Password       string `json:"Password"`
-// 	Database       string `json:"Database"`
-// 	DatabaseEncode string `json:"DatabaseEncode"`
-// }
+type JSON json.RawMessage
+
+// 实现 sql.Scanner 接口，Scan 将 value 扫描至 Jsonb
+func (j *JSON) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
+	}
+
+	result := json.RawMessage{}
+	err := json.Unmarshal(bytes, &result)
+	*j = JSON(result)
+	return err
+}
+
+// 实现 driver.Valuer 接口，Value 返回 json value
+func (j JSON) Value() (driver.Value, error) {
+	if len(j) == 0 {
+		return nil, nil
+	}
+	return json.RawMessage(j).MarshalJSON()
+}
+
+type Submit struct {
+	id            uint
+	submit_state  string
+	language      string
+	run_time      time.Time
+	submit_time   time.Time
+	problems_id   int
+	contest_id    int
+	language_name string
+	user_id       int
+}
+
+type User struct {
+	id        uint
+	email     string
+	name      string
+	password  string
+	authority string
+	user_info JSON
+}
 
 var db *gorm.DB
 
 func ConnectDatabase() {
-	// file, err := os.Open("./config/database.json")
-	// if err != nil {
-	// 	fmt.Println("Open database config file fail!", err.Error())
-	// 	return
-	// } else {
-	// 	fmt.Println("Open database config file success!")
-	// }
-	// defer file.Close()
-
-	// var dbConfig DatabaseConfig
-	// byteValue, _ := ioutil.ReadAll(file)
-	// json.Unmarshal([]byte(byteValue), &dbConfig)
-
-	// dsn := dbConfig.User + ":" + dbConfig.Password + "@tcp(" + dbConfig.ServerIP + ":" + dbConfig.Port + ")/" + dbConfig.Database + "?charset=" + dbConfig.DatabaseEncode + "&parseTime=True&loc=Local"
 	dsn := config.DATABASEUSER + ":" + config.DATABASEPASSWORD + "@tcp(" + config.DATABASEIP + ":" + config.DATABASEPORT + ")/" + config.DATABASENAME + "?charset=" + config.DATABASECHARSET + "&parseTime=" + config.DATABASEPARSETIME + "&loc=" + config.DATABASELOC
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -50,6 +75,11 @@ func ConnectDatabase() {
 	sqlDB.SetMaxIdleConns(config.MAXIDLECONNS)
 	sqlDB.SetMaxOpenConns(config.MAXOPENCONNS)
 	sqlDB.SetConnMaxLifetime(config.CONNMAXLIFETIME)
+
+	//sql查询测试
+	var submit User
+	result := db.Table("user").Take(&submit)
+	fmt.Println("影响行数:", result.RowsAffected)
 }
 
 func GetDatabaseConnection() *gorm.DB {
