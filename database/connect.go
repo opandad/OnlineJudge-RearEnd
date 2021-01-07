@@ -77,9 +77,9 @@ func ConnectDatabase() {
 	sqlDB.SetConnMaxLifetime(config.CONNMAXLIFETIME)
 
 	//sql查询测试
-	var submit User
-	result := db.Table("user").Take(&submit)
-	fmt.Println("影响行数:", result.RowsAffected)
+	var submit []User
+	db.Table("user").Find(&submit)
+	fmt.Println(submit)
 }
 
 func GetDatabaseConnection() *gorm.DB {
