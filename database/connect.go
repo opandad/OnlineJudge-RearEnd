@@ -48,9 +48,9 @@ type Submit struct {
 }
 
 type User struct {
-	id        uint
-	email     string
-	name      string
+	id        uint   `gorm:"column:id";primary_key`
+	email     string `gorm:"column:email"`
+	name      string `gorm:"column:password"`
 	password  string
 	authority string
 	user_info JSON
