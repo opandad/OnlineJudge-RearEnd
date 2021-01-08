@@ -50,10 +50,10 @@ type Submit struct {
 type User struct {
 	id        uint   `gorm:"column:id";primary_key`
 	email     string `gorm:"column:email"`
-	name      string `gorm:"column:password"`
-	password  string
-	authority string
-	user_info JSON
+	name      string `gorm:"column:name"`
+	password  string `gorm:"column:password"`
+	authority string `gorm:"column:authority"`
+	user_info JSON   `gorm:"column:user_info"`
 }
 
 var db *gorm.DB
