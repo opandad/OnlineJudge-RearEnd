@@ -1,4 +1,4 @@
-package problems
+package models
 
 type Problem struct {
 	id               int

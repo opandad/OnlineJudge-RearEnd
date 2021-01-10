@@ -1,17 +1,16 @@
-package submit
+package models
 
 import "time"
 
 type Submit struct {
-	id            int
-	submit_state  string
-	language      string
-	run_time      time.Time
-	submit_time   time.Time
-	problems_id   int
-	contest_id    int
-	language_name string
-	user_id       int
+	ID          int
+	SubmitState string
+	RunTime     time.Time
+	SubmitTime  time.Time
+	ProblemsId  int
+	ContestId   int
+	UserId      int
+	LanguageId  int
 }
 
 func QuerySubmit() {

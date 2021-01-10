@@ -1,8 +1,6 @@
 package main
 
-import (
-	"OnlineJudge-RearEnd/database"
-)
+import "OnlineJudge-RearEnd/database"
 
 func main() {
 	database.ConnectDatabase()
