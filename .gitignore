@@ -1,4 +1,5 @@
 /dist
+/configs
 
 *.swp
 /.vscode
