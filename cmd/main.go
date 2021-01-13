@@ -1,8 +1,8 @@
 package main
 
 import (
-	"OnlineJudge-RearEnd/internal/database"
-	"OnlineJudge-RearEnd/internal/server"
+	"OnlineJudge-RearEnd/features/database"
+	"OnlineJudge-RearEnd/features/server"
 )
 
 func main() {
