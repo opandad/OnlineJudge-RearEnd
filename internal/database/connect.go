@@ -1,8 +1,10 @@
+/*
+	功能：返回一个数据库连接
+*/
 package database
 
 import (
 	"OnlineJudge-RearEnd/configs"
-	"OnlineJudge-RearEnd/models"
 	"fmt"
 
 	"gorm.io/driver/mysql"
@@ -31,11 +33,11 @@ func ConnectDatabase() {
 	sqlDB.SetConnMaxLifetime(configs.CONNMAXLIFETIME)
 
 	//sql查询测试
-	var submit []models.User
-	db.Debug().Find(&submit)
-
-	fmt.Println("id:", submit[0].ID, "email:", submit[0].Email, "name:", submit[0].Name, "password:", submit[0].Password, "authority:", submit[0].Authority, "userinfo:", submit[0].UserInfo)
-	fmt.Println("id:", submit[1].ID, "email:", submit[1].Email, "name:", submit[1].Name, "password:", submit[1].Password, "authority:", submit[1].Authority, "userinfo:", submit[1].UserInfo)
+	/* User查询测试 */
+	// var submit []models.User
+	// db.Debug().Find(&submit)
+	// fmt.Println("id:", submit[0].ID, "email:", submit[0].Email, "name:", submit[0].Name, "password:", submit[0].Password, "authority:", submit[0].Authority, "userinfo:", submit[0].UserInfo)
+	// fmt.Println("id:", submit[1].ID, "email:", submit[1].Email, "name:", submit[1].Name, "password:", submit[1].Password, "authority:", submit[1].Authority, "userinfo:", submit[1].UserInfo)
 }
 
 func GetDatabaseConnection() *gorm.DB {
