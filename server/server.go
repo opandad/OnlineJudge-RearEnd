@@ -1,8 +1,7 @@
 package server
 
 import (
-	"OnlieJudge-RearEnd/features/users"
-	"OnlineJudge-RearEnd/database"
+	"OnlineJudge-RearEnd/features/users"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,6 +17,7 @@ func InitServer() {
 
 func index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "hello go")
-	users.LoginVerifyByEmail()
-	database.GetDatabaseConfig()
+
+	//test
+	users.LoginVerifyByEmail("abc@qq.com", "abc")
 }

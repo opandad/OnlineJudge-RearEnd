@@ -1,17 +1,30 @@
 /*
 	@Title
-	database.go
+	api/database.go
+
+	@Description
+	数据库的连接管理以及连接池等功能
 
 	@Func List
-	ConnectDatabase
-	InitDatabase
-	ReconnectDatabase
+
+	| func name         | develop  | unit test |
+
+	|------------------------------------------|
+
+	| ConnectDatabase   |    ok    |    ok	   |
+
+	| InitDatabase      |    ok    |    ok	   |
+
+	| ReconnectDatabase |    ok    |    ok	   |
+
+	@config database path => ~/configs/database.go
 */
 package database
 
 import (
 	"OnlineJudge-RearEnd/configs"
 	"database/sql"
+	"fmt"
 	"log"
 
 	"gorm.io/driver/mysql"
@@ -37,11 +50,9 @@ func ConnectDatabase() *sql.DB {
 	db, err := sql.Open(driver, dsn)
 	if err != nil {
 		log.Fatal("Connect to database fail:", err)
-		return nil
-	} else {
-		log.Fatal("Connect to database Success!")
-		return db
 	}
+	fmt.Println("Connect to database Success!")
+	return db
 }
 
 /*
@@ -59,19 +70,13 @@ nil
 */
 func InitDatabase() {
 	db := ConnectDatabase()
-	if db == nil {
-		log.Fatal("Init database fail!")
-		return
-	}
-
 	db.SetMaxIdleConns(configs.MAXIDLECONNS)
 	db.SetMaxOpenConns(configs.MAXOPENCONNS)
 	db.SetConnMaxLifetime(configs.CONNMAXLIFETIME)
+	fmt.Println("Init database success!")
 }
 
 /*
-Error now，还未编写完成
-
 @Title
 ReconnectDatabase
 
@@ -86,36 +91,14 @@ nil
 */
 func ReconnectDatabase() *gorm.DB {
 	mysqlDB := ConnectDatabase()
+
 	gormDB, err := gorm.Open(mysql.New(mysql.Config{
 		Conn: mysqlDB,
 	}), &gorm.Config{})
-
 	if err != nil {
 		log.Fatal("Reconnect to database fail: ", err)
-		return nil
-	} else {
-		log.Fatal("Reconnect to database success!")
-		return gormDB
 	}
-}
 
-/*
-废弃代码
-*/
-// func ConnectDatabase() {
-// 	dsn := configs.DATABASEUSER + ":" + configs.DATABASEPASSWORD + "@tcp(" + configs.DATABASEIP + ":" + configs.DATABASEPORT + ")/" + configs.DATABASENAME + "?charset=" + configs.DATABASECHARSET + "&parseTime=" + configs.DATABASEPARSETIME + "&loc=" + configs.DATABASELOC
-// 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-// 	if err != nil {
-// 		fmt.Println("Connect database fail. Please check database connect config!")
-// 		fmt.Println(err)
-// 		return
-// 	} else {
-// 		fmt.Println("Connect database success!")
-// 		fmt.Println(db)
-// 	}
-// 	//设置连接池
-// 	sqlDB, err := db.DB()
-// 	sqlDB.SetMaxIdleConns(configs.MAXIDLECONNS)
-// 	sqlDB.SetMaxOpenConns(configs.MAXOPENCONNS)
-// 	sqlDB.SetConnMaxLifetime(configs.CONNMAXLIFETIME)
-// }
+	fmt.Println("Reconnect to database success!")
+	return gormDB
+}
