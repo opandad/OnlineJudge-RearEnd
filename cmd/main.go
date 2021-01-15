@@ -1,11 +1,11 @@
 package main
 
 import (
-	"OnlineJudge-RearEnd/features/database"
-	"OnlineJudge-RearEnd/features/server"
+	"OnlineJudge-RearEnd/database"
+	"OnlineJudge-RearEnd/server"
 )
 
 func main() {
-	database.ConnectDatabase()
+	database.InitDatabase()
 	server.InitServer()
 }

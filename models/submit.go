@@ -12,13 +12,3 @@ type Submit struct {
 	UserId      int
 	LanguageId  int
 }
-
-func QuerySubmit() {
-	// var submit Submit
-
-	// db := database.GetDatabaseConnection()
-
-	// db.Where("id = ?", 1).First(&submit)
-
-	// fmt.Println(submit.id, submit.submit_state)
-}
