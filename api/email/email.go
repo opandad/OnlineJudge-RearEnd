@@ -17,6 +17,18 @@
 */
 package email
 
+/*
+@Title
+ConnectMailServer
+
+@description
+
+@param
+nil
+
+@return
+nil
+*/
 func ConnectMailServer() {
 
 }
