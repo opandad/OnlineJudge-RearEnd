@@ -46,7 +46,7 @@ db (*sql.DB)
 */
 func ConnectDatabase() *sql.DB {
 	driver := "mysql"
-	dsn := configs.DATABASEUSER + ":" + configs.DATABASEPASSWORD + "@tcp(" + configs.DATABASEIP + ":" + configs.DATABASEPORT + ")/" + configs.DATABASENAME + "?charset=" + configs.DATABASECHARSET + "&parseTime=" + configs.DATABASEPARSETIME + "&loc=" + configs.DATABASELOC
+	dsn := configs.DATABASE_USER + ":" + configs.DATABASE_PASSWORD + "@tcp(" + configs.DATABASE_SERVER_IP + ":" + configs.DATABASE_SERVER_PORT + ")/" + configs.DATABASE_NAME + "?charset=" + configs.DATABASE_CHARSET + "&parseTime=" + configs.DATABASE_PARSETIME + "&loc=" + configs.DATABASE_LOC
 	db, err := sql.Open(driver, dsn)
 	if err != nil {
 		log.Fatal("Connect to database fail:", err)
@@ -70,9 +70,9 @@ nil
 */
 func InitDatabase() {
 	db := ConnectDatabase()
-	db.SetMaxIdleConns(configs.MAXIDLECONNS)
-	db.SetMaxOpenConns(configs.MAXOPENCONNS)
-	db.SetConnMaxLifetime(configs.CONNMAXLIFETIME)
+	db.SetMaxIdleConns(configs.DATABASE_MAXIDLECONNS)
+	db.SetMaxOpenConns(configs.DATABASE_MAXOPENCONNS)
+	db.SetConnMaxLifetime(configs.DATABASE_CONNMAXLIFETIME)
 	fmt.Println("Init database success!")
 }
 

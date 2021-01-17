@@ -41,7 +41,7 @@ isSuccess bool
 func LoginVerifyByEmail(email string, password string) bool {
 	var users []models.User
 	database.ReconnectDatabase().Debug().Where("email = ?", email).First(&users)
-	fmt.Println("id:", users[0].ID, "email:", users[0].Email, "name:", users[0].Name, "password:", users[0].Password, "authority:", users[0].Authority, "userinfo:", users[0].UserInfo)
+	fmt.Println("id:", users[0].ID, "name:", users[0].Name, "password:", users[0].Password, "authority:", users[0].Authority, "userinfo:", users[0].UserInfo)
 
 	//temp var 避免报错
 	var isSuccess bool = true
