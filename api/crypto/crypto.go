@@ -1,6 +1,6 @@
 /*
 	@Title
-	api/encrypt.go
+	api/crypto.go
 
 	@Description
 	加密，解密，加盐
@@ -17,7 +17,7 @@
 
 	| Decrypt           |    no    |    no	   |
 */
-package encrypt
+package crypto
 
 //加盐操作
 func WithSalt() {
