@@ -1,6 +1,19 @@
 package users
 
 /*
+	@Title
+	users_manager
+
+	@Description
+	与用户登录的模块交互功能
+
+	@Func List
+	| func name           | develop  | unit test |
+	|--------------------------------------------|
+	| RegistByEmail       |    no    |    no     |
+*/
+
+/*
 正在开发中
 
 @Title
