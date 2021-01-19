@@ -39,9 +39,11 @@ email, password (string, string)
 isSuccess bool
 */
 func LoginVerifyByEmail(email string, password string) bool {
-	var users []models.User
-	database.ReconnectDatabase().Debug().Where("email = ?", email).First(&users)
-	fmt.Println("id:", users[0].ID, "name:", users[0].Name, "password:", users[0].Password, "authority:", users[0].Authority, "userinfo:", users[0].UserInfo)
+	var emails []models.Email
+	// var user []models.User
+	database.ReconnectDatabase().Debug().Model(&emails).Where("email = ?", email).Association("UserId").Find(&emails[0].User)
+	fmt.Println(emails[0])
+	// fmt.Println("id:", user[0].ID, "name:", user[0].Name, "password:", user[0].Password, "authority:", user[0].Authority, "userinfo:", user[0].UserInfo)
 
 	//temp var 避免报错
 	var isSuccess bool = true
@@ -61,29 +63,5 @@ func LoginVerifyPassword() {
 
 //验证码模块
 func LoginVerifyCode() {
-
-}
-
-//忘记密码模块
-func FindPasswordByEmail() {
-
-}
-
-/*
-正在开发中
-
-@Title
-RegistByEmail
-
-@description
-注册模块，会根据configs/email.go里面的配置文件发送邮箱配置
-
-@param
-null
-
-@return
-null
-*/
-func RegistByEmail() {
 
 }

@@ -26,9 +26,11 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 /*
@@ -81,24 +83,44 @@ func InitDatabase() {
 ReconnectDatabase
 
 @description
-返回mysql的*gorm.DB连接进行操作数据库
+返回mysql的*gorm.DB连接进行操作数据库，可以开启debug模式，在configs的database文件进行配置
 
 @param
 nil
 
 @return
-(*gorm.DB)
+db (*gorm.DB)
 */
 func ReconnectDatabase() *gorm.DB {
 	mysqlDB := ConnectDatabase()
 
-	gormDB, err := gorm.Open(mysql.New(mysql.Config{
-		Conn: mysqlDB,
-	}), &gorm.Config{})
-	if err != nil {
-		log.Fatal("Reconnect to database fail: ", err)
+	//debug模式
+	if configs.DATABASE_LOG_MODE_DEBUG {
+		newLogger := logger.New(
+			log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+			logger.Config{
+				LogLevel: logger.Info, // Log level
+				Colorful: true,        // 禁用彩色打印
+			},
+		)
+		gormDB, err := gorm.Open(mysql.New(mysql.Config{
+			Conn: mysqlDB,
+		}), &gorm.Config{
+			Logger: newLogger,
+		})
+		if err != nil {
+			log.Fatal("Reconnect to database fail: ", err)
+		}
+		fmt.Println("Reconnect to database success!")
+		return gormDB.Session(&gorm.Session{Logger: newLogger})
+	} else {
+		gormDB, err := gorm.Open(mysql.New(mysql.Config{
+			Conn: mysqlDB,
+		}), &gorm.Config{})
+		if err != nil {
+			log.Fatal("Reconnect to database fail: ", err)
+		}
+		fmt.Println("Reconnect to database success!")
+		return gormDB
 	}
-
-	fmt.Println("Reconnect to database success!")
-	return gormDB
 }

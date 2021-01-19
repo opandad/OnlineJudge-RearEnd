@@ -7,8 +7,8 @@ INSERT INTO `users` (`id`, `name`, `password`, `authority`, `user_info`) VALUES 
     "numb":1000,
     "nihao":"nihao"
 }');
-INSERT INTO `online_judge`.`emails` (`email`, `users_id`) VALUES ("abc@qq.com", 1);
-INSERT INTO `online_judge`.`emails` (`email`, `users_id`) VALUES ("jsontest@qq.com", 2);
+INSERT INTO `online_judge`.`emails` (`email`, `user_id`) VALUES ("abc@qq.com", 1);
+INSERT INTO `online_judge`.`emails` (`email`, `user_id`) VALUES ("jsontest@qq.com", 2);
 INSERT INTO `contests` (`id`, `name`, `start_time`, `duration`, `contest_info`) VALUES (1, "contesttest", "2020-12-11 14:00:00", "05:00", NULL);
 INSERT INTO `language` (`id`, `language`, `run_cmd`) VALUES (1, "g++", NULL);
 INSERT INTO `problems` (`id`, `name`, `description`, `accept`, `fail`, `is_robot_problem`, `judgeer_info`) VALUES (1, "helloworld", NULL, 0, 0, false, NULL);
