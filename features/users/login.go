@@ -20,7 +20,6 @@ package users
 import (
 	"OnlineJudge-RearEnd/api/database"
 	"OnlineJudge-RearEnd/models"
-	"fmt"
 )
 
 /*
@@ -39,16 +38,20 @@ email, password (string, string)
 isSuccess bool
 */
 func LoginVerifyByEmail(email string, password string) bool {
-	var emails []models.Email
-	// var user []models.User
-	database.ReconnectDatabase().Debug().Model(&emails).Where("email = ?", email).Association("UserId").Find(&emails[0].User)
-	fmt.Println(emails[0])
-	// fmt.Println("id:", user[0].ID, "name:", user[0].Name, "password:", user[0].Password, "authority:", user[0].Authority, "userinfo:", user[0].UserInfo)
+	var emailAccount models.Email
 
-	//temp var 避免报错
-	var isSuccess bool = true
+	//Success query
+	database.ReconnectDatabase().Where("email = ?", email).Find(&emailAccount)
+	database.ReconnectDatabase().Model(&emailAccount).Association("User").Find(&emailAccount.User)
 
-	return isSuccess
+	var isSuccessLogin bool
+	if password == emailAccount.User.Password {
+		isSuccessLogin = true
+	} else {
+		isSuccessLogin = false
+	}
+
+	return isSuccessLogin
 }
 
 //微信登录

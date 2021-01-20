@@ -6,7 +6,7 @@ import (
 
 const (
 	//Database base config
-	DATABASE_SERVER_IP   string = "192.168.121.131"
+	DATABASE_SERVER_IP   string = "127.0.0.1"
 	DATABASE_SERVER_PORT string = "3306"
 	DATABASE_USER        string = "online_judge_admin"
 	DATABASE_PASSWORD    string = "qweasd"

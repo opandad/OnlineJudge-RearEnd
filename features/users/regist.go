@@ -1,5 +1,10 @@
 package users
 
+import (
+	"OnlineJudge-RearEnd/api/email"
+	"OnlineJudge-RearEnd/api/verify_code"
+)
+
 /*
 	@Title
 	users_manager
@@ -23,11 +28,22 @@ RegistByEmail
 注册模块，会根据configs/email.go里面的配置文件发送邮箱配置
 
 @param
-null
+email (string)
 
 @return
-null
+成功或失败 (bool)
 */
-func RegistByEmail() {
+func RegistByEmail(mailAccount string) bool {
+	const SENDFAIL bool = false
 
+	if email.SendSingleMailByQQ(mailAccount, "OnlineJudge", "验证码", verify_code.RandVerifyCode("")) {
+
+	}
+
+	// if err != nil {
+	// 	fmt.Println("验证码发送失败，错误原因为：", err)
+	// 	isRegistSuccess = false
+	// }
+
+	return SENDFAIL
 }

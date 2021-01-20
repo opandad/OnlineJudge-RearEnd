@@ -7,4 +7,6 @@ const (
 	EMAIL_STMP_SERVER_PORT     string = "587"
 	EMAIL_STMP_ACCOUNT         string = "408805757@qq.com"
 	EMAIL_STMP_PASSWORD        string = "rccjrrweazhqbhbd"
+
+	//验证码发送格式配置
 )
