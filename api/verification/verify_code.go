@@ -1,19 +1,19 @@
 /*
 	@Title
-	api/RandVerifyCode.go
+	api/verify_code.go
 
 	@Description
 	生成验证码给邮件
 
 	@Func List（这个需打开函数检查）
 
-	| func name         | develop  | unit test |
+	| func name            | develop  | unit test |
 
-	|------------------------------------------|
+	|---------------------------------------------|
 
-	| RandVerifyCode    |    no    |    no	   |
+	| RandVerificationCode |    yes   |    yes	  |
 */
-package verify_code
+package verification
 
 import (
 	"math/rand"
@@ -22,13 +22,11 @@ import (
 )
 
 /*
-还未完成
-
 @Title
 RandVerifyCode
 
 @description
-生成验证码并储存
+生成验证码并储存进redis数据库中
 
 @param
 无
@@ -36,7 +34,7 @@ RandVerifyCode
 @return
 返回随机后的数字 string
 */
-func RandVerifyCode(user string) string {
+func RandVerificationCode() string {
 	rand.Seed(time.Now().Unix())
 	randNum := rand.Intn(899999) + 100000
 	time.Sleep(time.Second)

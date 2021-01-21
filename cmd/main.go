@@ -6,6 +6,6 @@ import (
 )
 
 func main() {
-	database.InitDatabase()
+	database.InitMysqlDatabase()
 	server.InitServer()
 }

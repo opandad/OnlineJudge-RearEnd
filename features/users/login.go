@@ -13,7 +13,6 @@
 	| LoginVerifyPassword |    no    |    no	 |
 	| LoginVerifyCode     |    no    |    no	 |
 	| FindPasswordByEmail |    no    |    no     |
-	| RegistByEmail       |    no    |    no     |
 */
 package users
 
@@ -41,8 +40,8 @@ func LoginVerifyByEmail(email string, password string) bool {
 	var emailAccount models.Email
 
 	//Success query
-	database.ReconnectDatabase().Where("email = ?", email).Find(&emailAccount)
-	database.ReconnectDatabase().Model(&emailAccount).Association("User").Find(&emailAccount.User)
+	database.ReconnectMysqlDatabase().Where("email = ?", email).Find(&emailAccount)
+	database.ReconnectMysqlDatabase().Model(&emailAccount).Association("User").Find(&emailAccount.User)
 
 	var isSuccessLogin bool
 	if password == emailAccount.User.Password {
@@ -66,5 +65,10 @@ func LoginVerifyPassword() {
 
 //验证码模块
 func LoginVerifyCode() {
+
+}
+
+//自动登录
+func AutoLogin(sessionID string) {
 
 }
