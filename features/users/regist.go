@@ -41,7 +41,7 @@ mailAccount (string)
 @return
 成功或失败 (bool)
 */
-func SendVerificationCodeToEmailUser(mailAccount string) bool {
+func SendVerificationCodeToEmailUser(mailAccount string, ) bool {
 	const SENDSUCCESS bool = true
 
 	verifyCode := verification.RandVerificationCode()
@@ -51,6 +51,7 @@ func SendVerificationCodeToEmailUser(mailAccount string) bool {
 		ctx := context.Background()
 		sessionID := verification.Snowflake()
 		database.ConnectRedisDatabase().SAdd(ctx, string(sessionID), sessionData)
+
 	} else {
 		fmt.Println("发送验证码失败，请检查邮箱是否填写正确！")
 	}
