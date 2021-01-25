@@ -1,12 +1,11 @@
 package users
 
 import (
-	"OnlineJudge-RearEnd/api/database"
 	"OnlineJudge-RearEnd/api/email"
 	"OnlineJudge-RearEnd/api/verification"
 	"OnlineJudge-RearEnd/models"
-	"context"
-	"fmt"
+
+	"github.com/gin-gonic/gin"
 )
 
 /*
@@ -41,22 +40,20 @@ mailAccount (string)
 @return
 成功或失败 (bool)
 */
-func SendVerificationCodeToEmailUser(mailAccount string, ) bool {
-	const SENDSUCCESS bool = true
+func SendVerificationCodeToEmailUser(c *gin.Context) {
+	var sessionData models.SessionData
+	if c.ShouldBind(&sessionData) == nil {
+		verifyCode := verification.RandVerificationCode()
 
-	verifyCode := verification.RandVerificationCode()
-
-	if email.SendMailByQQ([]string{mailAccount}, "OnlineJudge", "验证码", verifyCode) {
-		var sessionData models.SessionData = models.SessionData{-1, mailAccount, verifyCode}
-		ctx := context.Background()
-		sessionID := verification.Snowflake()
-		database.ConnectRedisDatabase().SAdd(ctx, string(sessionID), sessionData)
-
-	} else {
-		fmt.Println("发送验证码失败，请检查邮箱是否填写正确！")
+		if email.SendMailByQQ([]string{sessionData.Email}, "OnlineJudge", "验证码", verifyCode) {
+			// rdb := database.ConnectRedisDatabase()
+			// rdb.Set(sessionData.Email, verifyCode)
+			c.JSON(200, gin.H{"msg": "验证码发送成功，请到邮箱查收！"})
+		} else {
+			c.JSON(401, gin.H{"msg": "发送邮件失败，请检查邮箱是否正确！"})
+		}
 	}
-
-	return !SENDSUCCESS
+	c.JSON(401, gin.H{"msg": "你在干什么，不要酱紫QAQ！"})
 }
 
 /*
@@ -69,11 +66,11 @@ RegistByEmail
 读取session(redis)中的验证码，验证并返回是否成功注册
 
 @param
-email (string)
+email, password, verifyCode (string, string, string)
 
 @return
 成功或失败 (bool)
 */
-func RegistByEmail() {
+func RegistByEmail(c *gin.Context) {
 
 }

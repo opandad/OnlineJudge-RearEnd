@@ -8,8 +8,8 @@
 	@Func List
 	| func name           | develop  | unit test |
 	|--------------------------------------------|
-	| LoginVerifyByEmail  |    no    |    no	 |
-	| LoginVerifyByWechat |    no    |    no	 |
+	| LoginByEmail        |    no    |    no	 |
+	| LoginByWechat       |    no    |    no	 |
 	| LoginVerifyPassword |    no    |    no	 |
 	| LoginVerifyCode     |    no    |    no	 |
 	| FindPasswordByEmail |    no    |    no     |
@@ -19,13 +19,15 @@ package users
 import (
 	"OnlineJudge-RearEnd/api/database"
 	"OnlineJudge-RearEnd/models"
+
+	"github.com/gin-gonic/gin"
 )
 
 /*
 正在开发中
 
 @Title
-LoginVerifyByEmail
+LoginByEmail
 
 @description
 email帐号登录验证模块，其中password传参过来后会进行二次加密进行比较
@@ -36,25 +38,29 @@ email, password (string, string)
 @return
 isSuccess bool
 */
-func LoginVerifyByEmail(email string, password string) bool {
-	var emailAccount models.Email
+func LoginByEmail(c *gin.Context) {
+	var sessionData models.SessionData
+	if c.ShouldBind(&sessionData) == nil {
+		var emailAccount models.Email
 
-	//Success query
-	database.ReconnectMysqlDatabase().Where("email = ?", email).Find(&emailAccount)
-	database.ReconnectMysqlDatabase().Model(&emailAccount).Association("User").Find(&emailAccount.User)
+		//Success query
+		database.ReconnectMysqlDatabase().Where("email = ?", sessionData.Email).Find(&emailAccount)
+		database.ReconnectMysqlDatabase().Model(&emailAccount).Association("User").Find(&emailAccount.User)
 
-	var isSuccessLogin bool
-	if password == emailAccount.User.Password {
-		isSuccessLogin = true
-	} else {
-		isSuccessLogin = false
+		if sessionData.Email == emailAccount.Email && sessionData.Password == emailAccount.User.Password {
+			c.JSON(200, gin.H{
+				"userID":    emailAccount.User.ID,
+				"authority": emailAccount.User.Authority,
+				"msg":       "登录成功！",
+			})
+		} else {
+			c.JSON(401, gin.H{"msg": "用户名或密码错误，请重新登录！"})
+		}
 	}
-
-	return isSuccessLogin
 }
 
 //微信登录
-func LoginVerifyByWechat() {
+func LoginByWechat() {
 
 }
 

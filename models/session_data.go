@@ -5,7 +5,8 @@ package models
 	["机子id"]:["用户数据"]
 */
 type SessionData struct {
-	ID         int
-	Email      string
-	VerifyCode string
+	Email      string `form:"email"`
+	UserID     int    `form:"userid"`
+	Password   string `form:"password"`
+	VerifyCode int    `form:"verifyCode"`
 }
