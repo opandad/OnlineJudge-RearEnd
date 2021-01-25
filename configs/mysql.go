@@ -6,7 +6,7 @@ import (
 
 const (
 	//Database base config
-	DATABASE_MYSQL_SERVER_IP   string = "10.18.121.241"
+	DATABASE_MYSQL_SERVER_IP   string = "192.168.121.131"
 	DATABASE_MYSQL_SERVER_PORT string = "3306"
 	DATABASE_MYSQL_USER        string = "online_judge_admin"
 	DATABASE_MYSQL_PASSWORD    string = "qweasd"
