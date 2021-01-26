@@ -18,6 +18,7 @@ package users
 
 import (
 	"OnlineJudge-RearEnd/api/database"
+	"OnlineJudge-RearEnd/api/verification"
 	"OnlineJudge-RearEnd/models"
 
 	"github.com/gin-gonic/gin"
@@ -44,13 +45,15 @@ func LoginByEmail(c *gin.Context) {
 		var emailAccount models.Email
 
 		//Success query
-		database.ReconnectMysqlDatabase().Where("email = ?", sessionData.Email).Find(&emailAccount)
-		database.ReconnectMysqlDatabase().Model(&emailAccount).Association("User").Find(&emailAccount.User)
+		mdb := database.ReconnectMysqlDatabase()
+		mdb.Where("email = ?", sessionData.Email).Find(&emailAccount)
+		mdb.Model(&emailAccount).Association("User").Find(&emailAccount.User)
 
 		if sessionData.Email == emailAccount.Email && sessionData.Password == emailAccount.User.Password {
 			c.JSON(200, gin.H{
 				"userID":    emailAccount.User.ID,
 				"authority": emailAccount.User.Authority,
+				"sessionID": verification.Snowflake(),
 				"msg":       "登录成功！",
 			})
 		} else {
