@@ -45,7 +45,7 @@ func SendVerificationCodeToEmailUser(c *gin.Context) {
 	if c.ShouldBind(&sessionData) == nil {
 		verifyCode := verification.RandVerificationCode()
 
-		if email.SendMailByQQ([]string{sessionData.Email}, "OnlineJudge", "验证码", verifyCode) {
+		if email.SendMailByQQ([]string{sessionData.Account}, "OnlineJudge", "验证码", verifyCode) {
 			// rdb := database.ConnectRedisDatabase()
 			// rdb.Set(sessionData.Email, verifyCode)
 			c.JSON(200, gin.H{"msg": "验证码发送成功，请到邮箱查收！"})

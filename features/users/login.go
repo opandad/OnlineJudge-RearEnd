@@ -46,10 +46,10 @@ func LoginByEmail(c *gin.Context) {
 
 		//Success query
 		mdb := database.ReconnectMysqlDatabase()
-		mdb.Where("email = ?", sessionData.Email).Find(&emailAccount)
+		mdb.Where("email = ?", sessionData.Account).Find(&emailAccount)
 		mdb.Model(&emailAccount).Association("User").Find(&emailAccount.User)
 
-		if sessionData.Email == emailAccount.Email && sessionData.Password == emailAccount.User.Password {
+		if sessionData.Account == emailAccount.Email && sessionData.Password == emailAccount.User.Password {
 			c.JSON(200, gin.H{
 				"userID":    emailAccount.User.ID,
 				"authority": emailAccount.User.Authority,
