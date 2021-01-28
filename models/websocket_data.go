@@ -15,6 +15,8 @@ type WebsocketInputData struct {
 }
 
 type WebsocketOutputData struct {
+	UserID    int    `json:"userID"`
 	SessionID int64  `json:"sessionID"` //登录用
-	Message   string `json:"msg"`
+	Message   string `json:"msg"`       //About route
+	Error     error  `json:"error"`
 }

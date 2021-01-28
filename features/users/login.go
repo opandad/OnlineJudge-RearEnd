@@ -24,7 +24,7 @@ import (
 )
 
 /*
-正在开发中
+正在开发中，差加密
 
 @Title
 LoginByEmail
@@ -51,10 +51,12 @@ func LoginByEmail(websocketInputData *models.WebsocketInputData, websocketOutput
 	mdb.Where("email = ?", websocketInputData.Account).Find(&emailAccount)
 	mdb.Model(&emailAccount).Association("User").Find(&emailAccount.User)
 
+	//TODO 加密，和数据库比较
+
 	if websocketInputData.Account == emailAccount.Email && websocketInputData.Password == emailAccount.User.Password {
 		websocketOutputData.SessionID = verification.Snowflake()
 
-		//TODO
+		//TODO 记录进redis中，证明已经登录过
 		return nil
 	} else {
 		return errors.New("登录失败，请检查用户名和密码是否正确！")

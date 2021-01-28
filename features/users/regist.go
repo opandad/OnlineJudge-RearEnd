@@ -1,11 +1,7 @@
 package users
 
 import (
-	"OnlineJudge-RearEnd/api/database"
-	"OnlineJudge-RearEnd/api/email"
-	"OnlineJudge-RearEnd/api/verification"
 	"OnlineJudge-RearEnd/models"
-	"errors"
 )
 
 /*
@@ -42,27 +38,28 @@ email (string)
 失败：返回错误
 */
 func SendVerificationCodeToEmailUser(websocketInputData *models.WebsocketInputData, websocketOutputData *models.WebsocketOutputData) error {
-	verifyCode := verification.RandVerificationCode()
+	// verifyCode := verification.RandVerificationCode()
 
-	err := email.SendMailByQQ([]string{websocketInputData.Account}, "OnlineJudge", "验证码", verifyCode)
+	// err := email.SendMailByQQ([]string{websocketInputData.Account}, "OnlineJudge", "验证码", verifyCode)
 
-	//验证邮箱是否发送正确
-	if err == nil {
-		websocketOutputData.SessionID = verification.Snowflake()
-		rdb, ctx, err := database.ConnectRedisDatabase()
+	// //验证邮箱是否发送正确
+	// if err == nil {
+	// 	websocketOutputData.SessionID = verification.Snowflake()
+	// 	rdb, ctx, err := database.ConnectRedisDatabase()
 
-		//验证redis是否连接成功
-		if err == nil {
-			rdb.Set(ctx, websocketOutputData.SessionID, verifyCode, 1000)
+	// 	//验证redis是否连接成功
+	// 	if err == nil {
+	// 		rdb.Set(ctx, websocketOutputData.SessionID, verifyCode, 1000)
 
-			//TODO
-			return nil
-		}
+	// 		//TODO
+	// 		return nil
+	// 	}
 
-		return errors.New("redis数据库连接失败！")
-	} else {
-		return errors.New("发送邮件验证码失败，请检查邮箱是否正确！")
-	}
+	// 	return errors.New("redis数据库连接失败！")
+	// } else {
+	// 	return errors.New("发送邮件验证码失败，请检查邮箱是否正确！")
+	// }
+	return nil
 }
 
 /*
@@ -81,5 +78,5 @@ email, password, verifyCode (string, string, string)
 成功或失败 (bool)
 */
 func RegistByEmail(websocketInputData *models.WebsocketInputData) error {
-
+	return nil
 }
