@@ -20,7 +20,7 @@ package email
 
 import (
 	"OnlineJudge-RearEnd/configs"
-	"fmt"
+	"errors"
 	"net/smtp"
 	"strings"
 )
@@ -44,7 +44,7 @@ param e.g.
 @return
 成功或失败 bool
 */
-func SendMailByQQ(to []string, nickname string, subject string, msg string) bool {
+func SendMailByQQ(to []string, nickname string, subject string, msg string) error {
 	auth := smtp.PlainAuth("", configs.EMAIL_STMP_ACCOUNT, configs.EMAIL_STMP_PASSWORD, configs.EMAIL_STMP_SERVER_HOSTNAME)
 	/*
 		to 发送给
@@ -59,9 +59,7 @@ func SendMailByQQ(to []string, nickname string, subject string, msg string) bool
 	err := smtp.SendMail(configs.EMAIL_STMP_SERVER_HOSTNAME+":"+configs.EMAIL_STMP_SERVER_PORT, auth, configs.EMAIL_STMP_ACCOUNT, to, finalMsg)
 
 	if err != nil {
-		fmt.Println("发送给：" + strings.Join(to, ",") + "的邮件失败！")
-		fmt.Println(err)
-		return false
+		return errors.New("发送给：" + strings.Join(to, ",") + "的邮件失败！")
 	}
-	return true
+	return nil
 }

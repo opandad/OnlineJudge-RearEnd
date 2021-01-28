@@ -90,7 +90,7 @@ nil
 @return
 db (*gorm.DB)
 */
-func ReconnectMysqlDatabase() *gorm.DB {
+func ReconnectMysqlDatabase() (*gorm.DB, error) {
 	mysqlDB := ConnectMysqlDatabase()
 
 	//debug模式
@@ -107,19 +107,19 @@ func ReconnectMysqlDatabase() *gorm.DB {
 		}), &gorm.Config{
 			Logger: newLogger,
 		})
-		if err != nil {
-			log.Fatal("Reconnect to database fail: ", err)
-		}
-		fmt.Println("Reconnect to database Success!")
-		return gormDB.Session(&gorm.Session{Logger: newLogger})
+		// if err != nil {
+		// 	log.Fatal("Reconnect to database fail: ", err)
+		// }
+		// fmt.Println("Reconnect to database Success!")
+		return gormDB.Session(&gorm.Session{Logger: newLogger}), err
 	} else {
 		gormDB, err := gorm.Open(mysql.New(mysql.Config{
 			Conn: mysqlDB,
 		}), &gorm.Config{})
-		if err != nil {
-			log.Fatal("Reconnect to database fail: ", err)
-		}
-		fmt.Println("Reconnect to database Success!")
-		return gormDB
+		// if err != nil {
+		// 	log.Fatal("Reconnect to database fail: ", err)
+		// }
+		// fmt.Println("Reconnect to database Success!")
+		return gormDB, err
 	}
 }

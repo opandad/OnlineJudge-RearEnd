@@ -1,13 +1,3 @@
-package database
-
-import (
-	"OnlineJudge-RearEnd/configs"
-	"context"
-	"fmt"
-
-	"github.com/go-redis/redis/v8"
-)
-
 /*
 	@Title
 	api/database/redis.go
@@ -25,7 +15,30 @@ import (
 
 	@config database path => ~/configs/redis.go
 */
-func ConnectRedisDatabase() *redis.Client {
+package database
+
+import (
+	"OnlineJudge-RearEnd/configs"
+	"context"
+	"errors"
+
+	"github.com/go-redis/redis/v8"
+)
+
+/*
+@Title
+ConnectRedisDatabase
+
+@description
+返回redis数据库链接，并且返回所需要的context
+
+@param
+nil
+
+@return
+db, context.Background, error (*redis.Client, context.Context, error)
+*/
+func ConnectRedisDatabase() (*redis.Client, context.Context, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     configs.DATABASE_REDIS_SERVER_IP + ":" + configs.DATABASE_REDIS_SERVER_PORT,
 		Password: configs.DATABASE_REDIS_PASSWORD,
@@ -35,10 +48,8 @@ func ConnectRedisDatabase() *redis.Client {
 	ctx := context.Background()
 	pong, err := rdb.Ping(ctx).Result()
 	if err != nil {
-		fmt.Println("Redis ping error:", err)
+		return nil, context.Background(), errors.New("redis数据库连接失败，需要检查redis数据库是否能够正确连接！" + pong)
 	} else {
-		fmt.Println("Redis ping result: ", pong)
+		return rdb, context.Background(), nil
 	}
-
-	return rdb
 }

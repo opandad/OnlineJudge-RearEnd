@@ -1,11 +1,11 @@
 package users
 
 import (
+	"OnlineJudge-RearEnd/api/database"
 	"OnlineJudge-RearEnd/api/email"
 	"OnlineJudge-RearEnd/api/verification"
 	"OnlineJudge-RearEnd/models"
-
-	"github.com/gin-gonic/gin"
+	"errors"
 )
 
 /*
@@ -35,25 +35,34 @@ SendVerificationCodeToEmailUser
 发送验证码给用户，并且将发送的验证码储存在session(redis)中，储存的格式为"sessionID" => SessionData
 
 @param
-mailAccount (string)
+email (string)
 
 @return
-成功或失败 (bool)
+成功：返回sessionID, verifyCode(存在session)
+失败：返回错误
 */
-func SendVerificationCodeToEmailUser(c *gin.Context) {
-	var sessionData models.SessionData
-	if c.ShouldBind(&sessionData) == nil {
-		verifyCode := verification.RandVerificationCode()
+func SendVerificationCodeToEmailUser(websocketInputData *models.WebsocketInputData, websocketOutputData *models.WebsocketOutputData) error {
+	verifyCode := verification.RandVerificationCode()
 
-		if email.SendMailByQQ([]string{sessionData.Account}, "OnlineJudge", "验证码", verifyCode) {
-			// rdb := database.ConnectRedisDatabase()
-			// rdb.Set(sessionData.Email, verifyCode)
-			c.JSON(200, gin.H{"msg": "验证码发送成功，请到邮箱查收！"})
-		} else {
-			c.JSON(401, gin.H{"msg": "发送邮件失败，请检查邮箱是否正确！"})
+	err := email.SendMailByQQ([]string{websocketInputData.Account}, "OnlineJudge", "验证码", verifyCode)
+
+	//验证邮箱是否发送正确
+	if err == nil {
+		websocketOutputData.SessionID = verification.Snowflake()
+		rdb, ctx, err := database.ConnectRedisDatabase()
+
+		//验证redis是否连接成功
+		if err == nil {
+			rdb.Set(ctx, websocketOutputData.SessionID, verifyCode, 1000)
+
+			//TODO
+			return nil
 		}
+
+		return errors.New("redis数据库连接失败！")
+	} else {
+		return errors.New("发送邮件验证码失败，请检查邮箱是否正确！")
 	}
-	c.JSON(401, gin.H{"msg": "你在干什么，不要酱紫QAQ！"})
 }
 
 /*
@@ -71,6 +80,6 @@ email, password, verifyCode (string, string, string)
 @return
 成功或失败 (bool)
 */
-func RegistByEmail(c *gin.Context) {
+func RegistByEmail(websocketInputData *models.WebsocketInputData) error {
 
 }

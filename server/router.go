@@ -2,13 +2,14 @@ package server
 
 import (
 	"OnlineJudge-RearEnd/configs"
+	"OnlineJudge-RearEnd/models"
 
 	"github.com/gin-gonic/gin"
 )
 
 func InitServer() {
 	router := gin.Default()
-	router.Any("/", ping)
+	router.Any("/", Websocket)
 
 	// user := router.Group("/user", ping)
 	// {
@@ -34,4 +35,27 @@ func InitServer() {
 	// }
 
 	router.Run(configs.REAREND_SERVER_IP + ":" + configs.REAREND_SERVER_PORT)
+}
+
+func Router(inputData models.WebsocketInputData) models.WebsocketOutputData {
+	var outputData models.WebsocketOutputData
+	//登录模块
+	// if inputData.Message == "login" {
+	// 	if inputData.LoginByWhat == "email" {
+
+	// 	}
+	// } else if inputData.Message == "problems" {
+
+	// } else {
+	// 	outputData.Message = "404"
+	// }
+
+	switch inputData.Message {
+	case "login":
+		
+	default:
+		outputData.Message = "404"
+	}
+
+	return outputData
 }

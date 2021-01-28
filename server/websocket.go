@@ -16,7 +16,7 @@ var upGrader = websocket.Upgrader{
 	},
 }
 
-func ping(c *gin.Context) {
+func Websocket(c *gin.Context) {
 	ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		return
@@ -27,14 +27,18 @@ func ping(c *gin.Context) {
 		if err != nil {
 			break
 		}
-		var sessionData models.SessionData
 
-		if json.Unmarshal(message, &sessionData) != nil {
+		var websocketData models.WebsocketInputData
+
+		if json.Unmarshal(message, &websocketData) != nil {
 			fmt.Println("前端传输json解析错误：", err)
 		}
 
-		fmt.Println(string(message))
-		message = []byte("pong")
+		message, err = json.Marshal(Router(websocketData))
+		if err != nil {
+			fmt.Println("后端json解析错误：", err)
+		}
+
 		err = ws.WriteMessage(mt, message)
 		if err != nil {
 			break

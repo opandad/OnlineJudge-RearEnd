@@ -20,8 +20,7 @@ import (
 	"OnlineJudge-RearEnd/api/database"
 	"OnlineJudge-RearEnd/api/verification"
 	"OnlineJudge-RearEnd/models"
-
-	"github.com/gin-gonic/gin"
+	"errors"
 )
 
 /*
@@ -34,31 +33,31 @@ LoginByEmail
 email帐号登录验证模块，其中password传参过来后会进行二次加密进行比较
 
 @param
-email, password (string, string)
+emailAccount, password (string, string)
 
 @return
-isSuccess bool
+sessionID, error (int64, error)
 */
-func LoginByEmail(c *gin.Context) {
-	var sessionData models.SessionData
-	if c.ShouldBind(&sessionData) == nil {
-		var emailAccount models.Email
+func LoginByEmail(websocketInputData *models.WebsocketInputData, websocketOutputData *models.WebsocketOutputData) error {
+	var emailAccount models.Email
 
-		//Success query
-		mdb := database.ReconnectMysqlDatabase()
-		mdb.Where("email = ?", sessionData.Account).Find(&emailAccount)
-		mdb.Model(&emailAccount).Association("User").Find(&emailAccount.User)
+	//Success query
+	mdb, err := database.ReconnectMysqlDatabase()
 
-		if sessionData.Account == emailAccount.Email && sessionData.Password == emailAccount.User.Password {
-			c.JSON(200, gin.H{
-				"userID":    emailAccount.User.ID,
-				"authority": emailAccount.User.Authority,
-				"sessionID": verification.Snowflake(),
-				"msg":       "登录成功！",
-			})
-		} else {
-			c.JSON(401, gin.H{"msg": "用户名或密码错误，请重新登录！"})
-		}
+	if err != nil {
+		return errors.New("mysql数据库连接失败，请重新检查mysql数据库配置！")
+	}
+
+	mdb.Where("email = ?", websocketInputData.Account).Find(&emailAccount)
+	mdb.Model(&emailAccount).Association("User").Find(&emailAccount.User)
+
+	if websocketInputData.Account == emailAccount.Email && websocketInputData.Password == emailAccount.User.Password {
+		websocketOutputData.SessionID = verification.Snowflake()
+
+		//TODO
+		return nil
+	} else {
+		return errors.New("登录失败，请检查用户名和密码是否正确！")
 	}
 }
 
