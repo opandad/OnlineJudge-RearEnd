@@ -1,0 +1,5 @@
+package contests
+
+func Rank() {
+
+}

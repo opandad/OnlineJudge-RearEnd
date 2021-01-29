@@ -5,7 +5,7 @@ package models
 	["机子id"]:["用户数据"]
 */
 type WebsocketInputData struct {
-	SessionID   int64  `json:"sessionID"`
+	websocketID string `json:"sessionID"`
 	Account     string `json:"account"`
 	UserID      int    `json:"userID"`
 	Password    string `json:"password"`
@@ -15,8 +15,9 @@ type WebsocketInputData struct {
 }
 
 type WebsocketOutputData struct {
-	UserID    int    `json:"userID"`
-	SessionID int64  `json:"sessionID"` //登录用
-	Message   string `json:"msg"`       //About route
-	Error     error  `json:"error"`
+	UserID         int    `json:"userID"`
+	WebsocketID    string `json:"sessionID"` //登录用
+	Message        string `json:"msg"`       //About route
+	HTTPStatusCode int    `json:"httpStatusCode"`
+	Error          error  `json:"error"`
 }

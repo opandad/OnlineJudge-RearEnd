@@ -19,12 +19,13 @@ import (
 
 	|---------------------------------------------|
 
-	| Snowflake            |    yes   |    yes	  |
+	| Snowflake            |    no    |    no	  |
 */
-func Snowflake() int64 {
+func Snowflake() string {
 	node, err := snowflake.NewNode(1)
 	if err != nil {
 		log.Fatal("Snowflake fail: ", err)
 	}
-	return node.Generate().Int64()
+
+	return node.Generate().String()
 }

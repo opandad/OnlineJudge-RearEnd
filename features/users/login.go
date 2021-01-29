@@ -54,7 +54,7 @@ func LoginByEmail(websocketInputData *models.WebsocketInputData, websocketOutput
 	//TODO 加密，和数据库比较
 
 	if websocketInputData.Account == emailAccount.Email && websocketInputData.Password == emailAccount.User.Password {
-		websocketOutputData.SessionID = verification.Snowflake()
+		websocketOutputData.WebsocketID = verification.Snowflake()
 
 		//TODO 记录进redis中，证明已经登录过
 		return nil
