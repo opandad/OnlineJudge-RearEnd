@@ -1,7 +1,7 @@
 package server
 
 import (
-	"OnlineJudge-RearEnd/models"
+	"OnlineJudge-RearEnd/model"
 	"fmt"
 	"net/http"
 
@@ -22,7 +22,7 @@ func Websocket(c *gin.Context) {
 	}
 	defer ws.Close()
 	for {
-		var websocketData models.WebsocketInputData
+		var websocketData model.WebsocketInputData
 
 		if ws.ReadJSON(&websocketData) != nil {
 			fmt.Println("前端传输json解析错误：", err)

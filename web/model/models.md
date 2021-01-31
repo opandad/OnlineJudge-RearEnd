@@ -10,7 +10,8 @@
     -- submit
     -- user_join_contest
     -- user
-
--- 前端交互相关
+    
+--前端交互相关，websocket相关
+    --redis_data
     -- websocket_data
 ```

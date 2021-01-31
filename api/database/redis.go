@@ -33,16 +33,16 @@ ConnectRedisDatabase
 返回redis数据库链接，并且返回所需要的context
 
 @param
-nil
+select what db (int)
 
 @return
 db, context.Background, error (*redis.Client, context.Context, error)
 */
-func ConnectRedisDatabase() (*redis.Client, context.Context, error) {
+func ConnectRedisDatabase(db int) (*redis.Client, context.Context, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     configs.DATABASE_REDIS_SERVER_IP + ":" + configs.DATABASE_REDIS_SERVER_PORT,
 		Password: configs.DATABASE_REDIS_PASSWORD,
-		DB:       0,
+		DB:       db,
 	})
 
 	ctx := context.Background()

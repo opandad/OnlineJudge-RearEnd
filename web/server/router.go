@@ -2,8 +2,8 @@ package server
 
 import (
 	"OnlineJudge-RearEnd/configs"
-	"OnlineJudge-RearEnd/features/users"
-	"OnlineJudge-RearEnd/models"
+	"OnlineJudge-RearEnd/feature/user"
+	"OnlineJudge-RearEnd/model"
 
 	"github.com/gin-gonic/gin"
 )
@@ -38,15 +38,15 @@ func InitServer() {
 	router.Run(configs.REAREND_SERVER_IP + ":" + configs.REAREND_SERVER_PORT)
 }
 
-func Router(inputData models.WebsocketInputData) models.WebsocketOutputData {
-	var outputData models.WebsocketOutputData
+func Router(inputData model.WebsocketInputData) model.WebsocketOutputData {
+	var outputData model.WebsocketOutputData
 
 	var isRoute bool = false
 
 	if inputData.Message == "login" {
 		if inputData.LoginByWhat == "email" {
 			isRoute = true
-			outputData.Error = users.LoginByEmail(&inputData, &outputData)
+			outputData.Error = user.LoginByEmail(&inputData, &outputData)
 		}
 		if inputData.LoginByWhat == "auto" {
 			isRoute = true

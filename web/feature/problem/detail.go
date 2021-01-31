@@ -1,10 +1,10 @@
-package contests
+package problem
 
 /*
 正在开发中
 
 @Title
-contests.Detail
+problems.Detail
 
 @description
 

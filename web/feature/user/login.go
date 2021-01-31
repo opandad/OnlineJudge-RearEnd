@@ -14,12 +14,12 @@
 	| LoginVerifyCode     |    no    |    no	 |
 	| FindPasswordByEmail |    no    |    no     |
 */
-package users
+package user
 
 import (
 	"OnlineJudge-RearEnd/api/database"
 	"OnlineJudge-RearEnd/api/verification"
-	"OnlineJudge-RearEnd/models"
+	"OnlineJudge-RearEnd/web/model"
 	"errors"
 )
 
@@ -38,8 +38,8 @@ emailAccount, password (string, string)
 @return
 sessionID, error (int64, error)
 */
-func LoginByEmail(websocketInputData *models.WebsocketInputData, websocketOutputData *models.WebsocketOutputData) error {
-	var emailAccount models.Email
+func LoginByEmail(websocketInputData *model.WebsocketInputData, websocketOutputData *model.WebsocketOutputData) error {
+	var emailAccount model.Email
 
 	//Success query
 	mdb, err := database.ReconnectMysqlDatabase()
