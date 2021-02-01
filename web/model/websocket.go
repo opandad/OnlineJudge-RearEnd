@@ -5,19 +5,30 @@ package model
 	["机子id"]:["用户数据"]
 */
 type WebsocketInputData struct {
+	//web
 	WebsocketID string `json:"websocketID"`
+	Message     string `json:"msg"`
+
+	//user
 	Account     string `json:"account"`
-	UserID      int    `json:"userID"`
-	Password    string `json:"password"`
+	User        User   `json:"user"`
 	LoginByWhat string `json:"loginByWhat"`
 	VerifyCode  string `json:"verifyCode"`
-	Message     string `json:"msg"`
+
+	Submit Submit `json:"submit"`
 }
 
 type WebsocketOutputData struct {
-	UserID         int    `json:"userID"`
+	//web
 	WebsocketID    string `json:"websocketID"` //登录用
 	Message        string `json:"msg"`         //About route
 	HTTPStatusCode int    `json:"httpStatusCode"`
-	Error          error  `json:"error"`
+
+	//user
+	User User `json:"user"`
+
+	//about feature
+	Problems []Problem  `json:"problem"`
+	Contests []Contest  `json:"contest"`
+	Language []Language `json:"language"`
 }

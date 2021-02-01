@@ -21,10 +21,12 @@ import (
 	"OnlineJudge-RearEnd/api/verification"
 	"OnlineJudge-RearEnd/web/model"
 	"errors"
+	"time"
 )
 
 /*
-正在开发中，差加密
+正在开发
+结果：差加密，差记录
 
 @Title
 LoginByEmail
@@ -53,14 +55,25 @@ func LoginByEmail(websocketInputData *model.WebsocketInputData, websocketOutputD
 
 	//TODO 加密，和数据库比较
 
-	if websocketInputData.Account == emailAccount.Email && websocketInputData.Password == emailAccount.User.Password {
-		websocketOutputData.WebsocketID = verification.Snowflake()
-
-		//TODO 记录进redis中，证明已经登录过
-		return nil
-	} else {
+	if websocketInputData.Account != emailAccount.Email || websocketInputData.User.Password != emailAccount.User.Password {
 		return errors.New("登录失败，请检查用户名和密码是否正确！")
 	}
+
+	//TODO 记录进redis中，证明已经登录过
+	websocketOutputData.WebsocketID = verification.Snowflake()
+	var userOnlineData model.UserOnlineData
+	userOnlineData.WebsocketID = websocketOutputData.WebsocketID
+	rdb, err := database.ConnectRedisDatabase(0)
+	if err != nil {
+		return errors.New("redis数据库连接失败！")
+	}
+
+	err = rdb.Set(database.CTX, emailAccount.Email, userOnlineData, time.Minute*30).Err()
+	if err != nil {
+		return errors.New("redis数据库添加失败！")
+	}
+
+	return nil
 }
 
 //微信登录

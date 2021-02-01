@@ -29,7 +29,8 @@ import (
 */
 
 /*
-需要进行单元测试，可能需要改进
+需要进行单元测试
+测试结果：需要增加ping以防被攻击，堆内存导致机子爆
 
 @Title
 SendVerificationCodeToEmailUser
@@ -85,7 +86,7 @@ func SendVerificationCodeToEmailUser(websocketInputData *model.WebsocketInputDat
 	}
 	fmt.Println("JSON: ", string(userOnlineDataJSON))
 
-	//验证redis数据库是否加入成功(此处有问题)
+	//验证redis数据库是否加入成功
 	err = rdb.Set(database.CTX, websocketInputData.Account, userOnlineDataJSON, time.Minute*10).Err()
 	if err != nil {
 		// return err
@@ -99,6 +100,7 @@ func SendVerificationCodeToEmailUser(websocketInputData *model.WebsocketInputDat
 
 /*
 需要进行单元测试
+测试结果：需要输入名字并检测用户名是否一致，以及websocket需要添加一个用户名检测，验证码需要及时清除掉
 
 @Title
 RegistByEmail
@@ -143,16 +145,24 @@ func RegistByEmail(websocketInputData *model.WebsocketInputData, websocketOutput
 	}
 
 	//加入数据到mysql
-	var user model.User
-	user.Password = websocketInputData.Password
-	mdb.Select("password").Create(&user)
 	var email model.Email
 	email.Email = websocketInputData.Account
-	email.UserID = user.ID
+	email.User.Password = websocketInputData.User.Password
+	email.User.UserInfo = "{}"
+	email.User.Name = verification.RandVerificationCode()
 	err = mdb.Create(&email).Error
 	if err != nil {
+		fmt.Println(err)
 		return errors.New("添加用户失败")
 	}
+
+	//redis抹掉验证码
+	rdb.Del(database.CTX, websocketInputData.Account)
+
+	//自动登录
+	rdb.Set(database.CTX, string(email.User.ID), &model.UserOnlineData{
+		WebsocketID: websocketInputData.WebsocketID,
+	}, time.Minute*30)
 
 	return nil
 }
