@@ -2,8 +2,8 @@ package server
 
 import (
 	"OnlineJudge-RearEnd/configs"
-	"OnlineJudge-RearEnd/feature/user"
-	"OnlineJudge-RearEnd/model"
+	"OnlineJudge-RearEnd/web/feature/user"
+	"OnlineJudge-RearEnd/web/model"
 
 	"github.com/gin-gonic/gin"
 )

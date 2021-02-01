@@ -25,6 +25,8 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
+var CTX = context.Background()
+
 /*
 @Title
 ConnectRedisDatabase
@@ -36,9 +38,9 @@ ConnectRedisDatabase
 select what db (int)
 
 @return
-db, context.Background, error (*redis.Client, context.Context, error)
+db, context.Background, error (*redis.Client, error)
 */
-func ConnectRedisDatabase(db int) (*redis.Client, context.Context, error) {
+func ConnectRedisDatabase(db int) (*redis.Client, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     configs.DATABASE_REDIS_SERVER_IP + ":" + configs.DATABASE_REDIS_SERVER_PORT,
 		Password: configs.DATABASE_REDIS_PASSWORD,
@@ -48,8 +50,8 @@ func ConnectRedisDatabase(db int) (*redis.Client, context.Context, error) {
 	ctx := context.Background()
 	pong, err := rdb.Ping(ctx).Result()
 	if err != nil {
-		return nil, context.Background(), errors.New("redis数据库连接失败，需要检查redis数据库是否能够正确连接！" + pong)
+		return nil, errors.New("redis数据库连接失败，需要检查redis数据库是否能够正确连接！" + pong)
 	} else {
-		return rdb, context.Background(), nil
+		return rdb, nil
 	}
 }

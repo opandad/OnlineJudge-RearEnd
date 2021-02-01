@@ -1,7 +1,7 @@
 package server
 
 import (
-	"OnlineJudge-RearEnd/model"
+	"OnlineJudge-RearEnd/web/model"
 	"fmt"
 	"net/http"
 

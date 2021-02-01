@@ -5,8 +5,10 @@ import (
 	"OnlineJudge-RearEnd/api/email"
 	"OnlineJudge-RearEnd/api/verification"
 	"OnlineJudge-RearEnd/web/model"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 )
 
 /*
@@ -21,13 +23,13 @@ import (
 
 	|-------------------------------------------------------|
 
-	| RegistByEmail                  |    no    |    no     |
+	| RegistByEmail                  |    ok    |    no     |
 
-	|SendVerificationCodeToEmailUser |    no    |    no     |
+	|SendVerificationCodeToEmailUser |    ok    |    no     |
 */
 
 /*
-正在开发中
+需要进行单元测试，可能需要改进
 
 @Title
 SendVerificationCodeToEmailUser
@@ -62,7 +64,7 @@ func SendVerificationCodeToEmailUser(websocketInputData *model.WebsocketInputDat
 	}
 
 	//尝试连接websocket数据存放服务器
-	rdb, ctx, err := database.ConnectRedisDatabase(0)
+	rdb, err := database.ConnectRedisDatabase(0)
 	if err != nil {
 		return errors.New("redis数据库连接失败！")
 	}
@@ -77,16 +79,16 @@ func SendVerificationCodeToEmailUser(websocketInputData *model.WebsocketInputDat
 	var userOnlineData model.UserOnlineData
 	userOnlineData.VerifyCode = verifyCode
 	userOnlineData.WebsocketID = websocketID
-	// userOnlineDataJSON, err := json.Marshal(&userOnlineData)
-	// if err != nil {
-	// 	return errors.New("将用户注册验证码转换成json时失败")
-	// }
-	// fmt.Println("JSON: ", string(userOnlineDataJSON))
+	userOnlineDataJSON, err := json.Marshal(&userOnlineData)
+	if err != nil {
+		return errors.New("将用户注册验证码转换成json时失败")
+	}
+	fmt.Println("JSON: ", string(userOnlineDataJSON))
 
 	//验证redis数据库是否加入成功(此处有问题)
-	err = rdb.HSet(ctx, websocketInputData.Account, userOnlineData).Err()
+	err = rdb.Set(database.CTX, websocketInputData.Account, userOnlineDataJSON, time.Minute*10).Err()
 	if err != nil {
-		return err
+		// return err
 		return errors.New("redis数据库加入数据失败")
 	}
 
@@ -96,7 +98,7 @@ func SendVerificationCodeToEmailUser(websocketInputData *model.WebsocketInputDat
 }
 
 /*
-正在开发中
+需要进行单元测试
 
 @Title
 RegistByEmail
@@ -110,6 +112,47 @@ email, password, verifyCode (string, string, string)
 @return
 成功或失败 (bool)
 */
-func RegistByEmail(websocketInputData *model.WebsocketInputData) error {
+func RegistByEmail(websocketInputData *model.WebsocketInputData, websocketOutputData *model.WebsocketOutputData) error {
+	//检查数据库是否能够正常连接
+	rdb, err := database.ConnectRedisDatabase(0)
+	if err != nil {
+		return errors.New("redis数据库连接失败！")
+	}
+	mdb, err := database.ReconnectMysqlDatabase()
+	if err != nil {
+		return errors.New("mysql数据库连接失败！")
+	}
+
+	//尝试取数据
+	userOnlineDataJSON, err := rdb.Get(database.CTX, websocketInputData.Account).Result()
+	if err != nil {
+		return errors.New("没有这个帐号的验证码")
+	}
+
+	//取数据转换json
+	var userOnlineData model.UserOnlineData
+	err = json.Unmarshal([]byte(userOnlineDataJSON), &userOnlineData)
+	if err != nil {
+		return errors.New("redis数据转换json出错")
+	}
+
+	//将取出来的验证码比较
+	if userOnlineData.VerifyCode != websocketInputData.VerifyCode {
+		websocketOutputData.Message = "验证码错误"
+		return errors.New("验证码错误")
+	}
+
+	//加入数据到mysql
+	var user model.User
+	user.Password = websocketInputData.Password
+	mdb.Select("password").Create(&user)
+	var email model.Email
+	email.Email = websocketInputData.Account
+	email.UserID = user.ID
+	err = mdb.Create(&email).Error
+	if err != nil {
+		return errors.New("添加用户失败")
+	}
+
 	return nil
 }

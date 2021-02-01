@@ -2,7 +2,7 @@ package main
 
 import (
 	"OnlineJudge-RearEnd/api/database"
-	"OnlineJudge-RearEnd/server"
+	"OnlineJudge-RearEnd/web/server"
 )
 
 func main() {

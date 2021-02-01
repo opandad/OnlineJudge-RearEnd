@@ -79,6 +79,6 @@ func LoginVerifyCode() {
 }
 
 //自动登录
-func AutoLogin(sessionID string) {
+func AutoLogin(websocketInputData *model.WebsocketInputData, websocketOutputData *model.WebsocketOutputData) {
 
 }
