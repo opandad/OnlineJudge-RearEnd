@@ -2,7 +2,6 @@ package server
 
 import (
 	"OnlineJudge-RearEnd/configs"
-	"OnlineJudge-RearEnd/web/feature/user"
 	"OnlineJudge-RearEnd/web/model"
 
 	"github.com/gin-gonic/gin"
@@ -46,7 +45,7 @@ func Router(inputData model.WebsocketInputData) model.WebsocketOutputData {
 	if inputData.Message == "login" {
 		if inputData.LoginByWhat == "email" {
 			isRoute = true
-			outputData.Error = user.LoginByEmail(&inputData, &outputData)
+			// outputData.Error = user.LoginByEmail(&inputData, &outputData)
 		}
 		if inputData.LoginByWhat == "auto" {
 			isRoute = true
