@@ -14,7 +14,6 @@ package problem
 */
 
 import (
-	"OnlineJudge-RearEnd/api/database"
 	"OnlineJudge-RearEnd/web/model"
 )
 
@@ -31,15 +30,16 @@ problems.Detail
 @return
 */
 func Detail(websocketInputData *model.WebsocketInputData, websocketOutputData *model.WebsocketOutputData) error {
-	mdb, err := database.ReconnectMysqlDatabase()
-	if err != nil {
-		return err
-	}
+	// mdb, err := database.ReconnectMysqlDatabase()
+	// if err != nil {
+	// 	return err
+	// }
 
-	var problem model.Problem
-	err = mdb.Debug().Where("id = ?", websocketInputData.Problems.id).Find(&problem).Error
-	if err != nil {
-		return err
-	}
-	websocketOutputData.Problems = problems
+	// var problem model.Problem
+	// err = mdb.Debug().Where("id = ?", websocketInputData.Problems.id).Find(&problem).Error
+	// if err != nil {
+	// 	return err
+	// }
+	// websocketOutputData.Problems = problems
+	return nil
 }
