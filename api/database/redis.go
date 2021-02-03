@@ -25,8 +25,6 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-var CTX = context.Background()
-
 /*
 @Title
 ConnectRedisDatabase

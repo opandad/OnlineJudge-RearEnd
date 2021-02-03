@@ -2,7 +2,7 @@ package model
 
 /*
 	session是存放在redis当中的
-	["机子id"]:["用户数据"]
+	["用户id"]:["用户数据"]
 */
 type WebsocketInputData struct {
 	//web
@@ -23,6 +23,7 @@ type WebsocketOutputData struct {
 	WebsocketID    string `json:"websocketID"` //登录用
 	Message        string `json:"msg"`         //About route
 	HTTPStatusCode int    `json:"httpStatusCode"`
+	IsError        bool   `json:"isError"`
 
 	//user
 	User User `json:"user"`

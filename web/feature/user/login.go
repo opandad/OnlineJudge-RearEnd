@@ -20,6 +20,7 @@ import (
 	"OnlineJudge-RearEnd/api/database"
 	"OnlineJudge-RearEnd/api/verification"
 	"OnlineJudge-RearEnd/web/model"
+	"context"
 	"errors"
 	"time"
 )
@@ -50,8 +51,11 @@ func LoginByEmail(websocketInputData *model.WebsocketInputData, websocketOutputD
 		return errors.New("mysql数据库连接失败，请重新检查mysql数据库配置！")
 	}
 
-	mdb.Where("email = ?", websocketInputData.Account).Find(&emailAccount)
-	mdb.Model(&emailAccount).Association("User").Find(&emailAccount.User)
+	ctx := context.Background()
+	tx := mdb.WithContext(ctx)
+
+	tx.Where("email = ?", websocketInputData.Account).Find(&emailAccount)
+	tx.Model(&emailAccount).Association("User").Find(&emailAccount.User)
 
 	//TODO 加密，和数据库比较
 
@@ -68,7 +72,7 @@ func LoginByEmail(websocketInputData *model.WebsocketInputData, websocketOutputD
 		return errors.New("redis数据库连接失败！")
 	}
 
-	err = rdb.Set(database.CTX, emailAccount.Email, userOnlineData, time.Minute*30).Err()
+	err = rdb.Set(ctx, emailAccount.Email, userOnlineData, time.Minute*30).Err()
 	if err != nil {
 		return errors.New("redis数据库添加失败！")
 	}

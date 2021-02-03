@@ -5,6 +5,7 @@ import (
 	"OnlineJudge-RearEnd/api/email"
 	"OnlineJudge-RearEnd/api/verification"
 	"OnlineJudge-RearEnd/web/model"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -86,8 +87,9 @@ func SendVerificationCodeToEmailUser(websocketInputData *model.WebsocketInputDat
 	}
 	fmt.Println("JSON: ", string(userOnlineDataJSON))
 
+	ctx := context.Background()
 	//验证redis数据库是否加入成功
-	err = rdb.Set(database.CTX, websocketInputData.Account, userOnlineDataJSON, time.Minute*10).Err()
+	err = rdb.Set(ctx, websocketInputData.Account, userOnlineDataJSON, time.Minute*10).Err()
 	if err != nil {
 		// return err
 		return errors.New("redis数据库加入数据失败")
@@ -125,8 +127,9 @@ func RegistByEmail(websocketInputData *model.WebsocketInputData, websocketOutput
 		return errors.New("mysql数据库连接失败！")
 	}
 
+	ctx := context.Background()
 	//尝试取数据
-	userOnlineDataJSON, err := rdb.Get(database.CTX, websocketInputData.Account).Result()
+	userOnlineDataJSON, err := rdb.Get(ctx, websocketInputData.Account).Result()
 	if err != nil {
 		return errors.New("没有这个帐号的验证码")
 	}
@@ -157,10 +160,10 @@ func RegistByEmail(websocketInputData *model.WebsocketInputData, websocketOutput
 	}
 
 	//redis抹掉验证码
-	rdb.Del(database.CTX, websocketInputData.Account)
+	rdb.Del(ctx, websocketInputData.Account)
 
 	//自动登录
-	rdb.Set(database.CTX, string(email.User.ID), &model.UserOnlineData{
+	rdb.Set(ctx, string(email.User.ID), &model.UserOnlineData{
 		WebsocketID: websocketInputData.WebsocketID,
 	}, time.Minute*30)
 
