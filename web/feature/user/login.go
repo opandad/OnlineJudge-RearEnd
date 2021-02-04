@@ -54,12 +54,12 @@ func LoginByEmail(websocketInputData *model.WebsocketInputData, websocketOutputD
 	ctx := context.Background()
 	tx := mdb.WithContext(ctx)
 
-	tx.Where("email = ?", websocketInputData.Account).Find(&emailAccount)
+	tx.Where("email = ?", websocketInputData.User.Account).Find(&emailAccount)
 	tx.Model(&emailAccount).Association("User").Find(&emailAccount.User)
 
 	//TODO 加密，和数据库比较
 
-	if websocketInputData.Account != emailAccount.Email || websocketInputData.User.Password != emailAccount.User.Password {
+	if websocketInputData.User.Account != emailAccount.Email || websocketInputData.User.Password != emailAccount.User.Password {
 		return errors.New("登录失败，请检查用户名和密码是否正确！")
 	}
 
@@ -82,11 +82,6 @@ func LoginByEmail(websocketInputData *model.WebsocketInputData, websocketOutputD
 
 //微信登录
 func LoginByWechat() {
-
-}
-
-//密码验证模块
-func LoginVerifyPassword() {
 
 }
 

@@ -12,6 +12,12 @@ type WebsocketInputData struct {
 	//user
 	User WebsocketUser `json:"user"`
 
+	//分页查询
+	Page Page `json:"page"`
+
+	ProblemID int `json:"problemID"`
+	ContestID int `json:"contestID"`
+
 	Submit Submit `json:"submit"`
 }
 
@@ -29,6 +35,7 @@ type WebsocketOutputData struct {
 	Problems []Problem  `json:"problem"`
 	Contests []Contest  `json:"contest"`
 	Language []Language `json:"language"`
+	Submits  []Submit   `json:"submit"`
 }
 
 type WebsocketUser struct {
@@ -36,4 +43,9 @@ type WebsocketUser struct {
 	Password    string `json:"password"`
 	LoginByWhat string `json:"loginByWhat"`
 	VerifyCode  string `json:"verifyCode"`
+}
+
+type Page struct {
+	PageSize  int `json:"pageSize"`
+	PageIndex int `json:"pageIndex"`
 }

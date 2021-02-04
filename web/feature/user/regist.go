@@ -59,7 +59,7 @@ func SendVerificationCodeToEmailUser(websocketInputData *model.WebsocketInputDat
 		return errors.New("mysql数据库连接失败！无法验证用户是否存在。")
 	}
 	var count int64
-	mdb.Model(&model.Email{}).Where("email = ?", websocketInputData.Account).Count(&count)
+	mdb.Model(&model.Email{}).Where("email = ?", websocketInputData.User.Account).Count(&count)
 	fmt.Println(count)
 	if count != 0 {
 		return errors.New("账号已经被注册，如果忘记密码，请寻回密码")
@@ -72,7 +72,7 @@ func SendVerificationCodeToEmailUser(websocketInputData *model.WebsocketInputDat
 	}
 
 	//验证邮箱是否发送正确
-	err = email.SendMailByQQ([]string{websocketInputData.Account}, "OnlineJudge", "验证码", verifyCode)
+	err = email.SendMailByQQ([]string{websocketInputData.User.Account}, "OnlineJudge", "验证码", verifyCode)
 	if err != nil {
 		return errors.New("发送邮件验证码失败，请检查邮箱是否正确！")
 	}
@@ -89,7 +89,7 @@ func SendVerificationCodeToEmailUser(websocketInputData *model.WebsocketInputDat
 
 	ctx := context.Background()
 	//验证redis数据库是否加入成功
-	err = rdb.Set(ctx, websocketInputData.Account, userOnlineDataJSON, time.Minute*10).Err()
+	err = rdb.Set(ctx, websocketInputData.User.Account, userOnlineDataJSON, time.Minute*10).Err()
 	if err != nil {
 		// return err
 		return errors.New("redis数据库加入数据失败")
@@ -129,7 +129,7 @@ func RegistByEmail(websocketInputData *model.WebsocketInputData, websocketOutput
 
 	ctx := context.Background()
 	//尝试取数据
-	userOnlineDataJSON, err := rdb.Get(ctx, websocketInputData.Account).Result()
+	userOnlineDataJSON, err := rdb.Get(ctx, websocketInputData.User.Account).Result()
 	if err != nil {
 		return errors.New("没有这个帐号的验证码")
 	}
@@ -142,14 +142,14 @@ func RegistByEmail(websocketInputData *model.WebsocketInputData, websocketOutput
 	}
 
 	//将取出来的验证码比较
-	if userOnlineData.VerifyCode != websocketInputData.VerifyCode {
+	if userOnlineData.VerifyCode != websocketInputData.User.VerifyCode {
 		websocketOutputData.Message = "验证码错误"
 		return errors.New("验证码错误")
 	}
 
 	//加入数据到mysql
 	var email model.Email
-	email.Email = websocketInputData.Account
+	email.Email = websocketInputData.User.Account
 	email.User.Password = websocketInputData.User.Password
 	email.User.UserInfo = "{}"
 	email.User.Name = verification.RandVerificationCode()
@@ -160,7 +160,7 @@ func RegistByEmail(websocketInputData *model.WebsocketInputData, websocketOutput
 	}
 
 	//redis抹掉验证码
-	rdb.Del(ctx, websocketInputData.Account)
+	rdb.Del(ctx, websocketInputData.User.Account)
 
 	//自动登录
 	rdb.Set(ctx, string(email.User.ID), &model.UserOnlineData{

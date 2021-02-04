@@ -14,31 +14,33 @@ package problem
 */
 
 import (
+	"OnlineJudge-RearEnd/api/database"
 	"OnlineJudge-RearEnd/web/model"
 )
 
 /*
-正在开发中
+	正在开发中
 
-@Title
-problems.Detail
+	@Title
+	problems.Detail
 
-@description
+	@description
 
-@param
+	@param
 
-@return
+	@return
 */
 func Detail(websocketInputData *model.WebsocketInputData, websocketOutputData *model.WebsocketOutputData) error {
-	// mdb, err := database.ReconnectMysqlDatabase()
-	// if err != nil {
-	// 	return err
-	// }
+	mdb, err := database.ReconnectMysqlDatabase()
+	if err != nil {
+		return err
+	}
 
-	// var problem model.Problem
-	// err = mdb.Debug().Where("id = ?", websocketInputData.Problems.id).Find(&problem).Error
-	// if err != nil {
-	// }
-	// websocketOutputData.Problems = problems
+	var problem model.Problem
+	err = mdb.Debug().Where("id = ?", websocketInputData.ProblemID).First(&problem).Error
+	if err != nil {
+		return err
+	}
+	websocketOutputData.Problems = []model.Problem{problem}
 	return nil
 }
