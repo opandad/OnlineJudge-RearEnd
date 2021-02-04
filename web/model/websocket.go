@@ -7,13 +7,10 @@ package model
 type WebsocketInputData struct {
 	//web
 	WebsocketID string `json:"websocketID"`
-	Message     string `json:"msg"`
+	RequestPath string `json:"requestPath"`
 
 	//user
-	Account     string `json:"account"`
-	User        User   `json:"user"`
-	LoginByWhat string `json:"loginByWhat"`
-	VerifyCode  string `json:"verifyCode"`
+	User WebsocketUser `json:"user"`
 
 	Submit Submit `json:"submit"`
 }
@@ -32,4 +29,11 @@ type WebsocketOutputData struct {
 	Problems []Problem  `json:"problem"`
 	Contests []Contest  `json:"contest"`
 	Language []Language `json:"language"`
+}
+
+type WebsocketUser struct {
+	Account     string `json:"account"`
+	Password    string `json:"password"`
+	LoginByWhat string `json:"loginByWhat"`
+	VerifyCode  string `json:"verifyCode"`
 }

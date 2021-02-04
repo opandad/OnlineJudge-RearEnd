@@ -28,7 +28,7 @@ func Websocket(c *gin.Context) {
 			fmt.Println("前端传输json解析错误：", err)
 		}
 
-		err = ws.WriteJSON(Router(websocketData))
+		err = ws.WriteJSON(Router(&websocketData))
 
 		if err != nil {
 			break

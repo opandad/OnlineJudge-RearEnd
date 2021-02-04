@@ -38,7 +38,6 @@ func Detail(websocketInputData *model.WebsocketInputData, websocketOutputData *m
 	// var problem model.Problem
 	// err = mdb.Debug().Where("id = ?", websocketInputData.Problems.id).Find(&problem).Error
 	// if err != nil {
-	// 	return err
 	// }
 	// websocketOutputData.Problems = problems
 	return nil

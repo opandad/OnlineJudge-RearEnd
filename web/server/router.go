@@ -1,57 +1,54 @@
 package server
 
 import (
-	"OnlineJudge-RearEnd/configs"
 	"OnlineJudge-RearEnd/web/model"
-
-	"github.com/gin-gonic/gin"
+	"strings"
 )
 
-func InitServer() {
-	router := gin.Default()
-	router.Any("/", Websocket)
-
-	// user := router.Group("/user", ping)
-	// {
-	// 	user.POST("/login_by_email", users.LoginByEmail)
-	// 	user.GET("/check_login")
-	// 	user.GET("/regist_by_email", users.RegistByEmail)
-	// 	user.GET("/get_email_verify_code", users.SendVerificationCodeToEmailUser)
-	// 	user.GET("/forget_password_by_email")
-	// }
-
-	// problems := router.Group("/problems")
-	// {
-	// 	problems.GET("/list")
-	// 	problems.GET("/problem")
-	// 	problems.POST("/submit")
-	// }
-
-	// contests := router.Group("/contests")
-	// {
-	// 	contests.GET("/list")
-	// 	contests.GET("/contest")
-	// 	contests.GET("/rank")
-	// }
-
-	router.Run(configs.REAREND_SERVER_IP + ":" + configs.REAREND_SERVER_PORT)
-}
-
-func Router(inputData model.WebsocketInputData) model.WebsocketOutputData {
+/*
+	msg格式：login/xxx/xxx
+*/
+func Router(inputData *model.WebsocketInputData) model.WebsocketOutputData {
 	var outputData model.WebsocketOutputData
 
+	//检测是否为404，解析请求路径
 	var isRoute bool = false
+	var requestPath []string = strings.Split(inputData.RequestPath, "/")
 
-	if inputData.Message == "login" {
-		if inputData.LoginByWhat == "email" {
-			isRoute = true
-			// outputData.Error = user.LoginByEmail(&inputData, &outputData)
+	//login
+	if requestPath[0] == "user" {
+		if requestPath[1] == "login" {
+			if requestPath[2] == "email" {
+				isRoute = true
+			}
+			if requestPath[2] == "auto" {
+				isRoute = true
+			}
 		}
-		if inputData.LoginByWhat == "auto" {
-			isRoute = true
+		if requestPath[1] == "regist" {
+			if requestPath[2] == "email" {
+				isRoute = true
+			}
+		}
+		if requestPath[1] == "userInfo" {
+
 		}
 	}
 
+	//problems
+	if requestPath[0] == "problems" {
+		if requestPath[1] == "list" {
+			isRoute = true
+		}
+		if requestPath[1] == "detail" {
+			//需要判断题目是否存在，如果不存在返回404
+		}
+		if requestPath[1] == "submit" {
+			//需要验证是否登录
+		}
+	}
+
+	//404 not found
 	if isRoute == false {
 		outputData.Message = "404"
 	}
