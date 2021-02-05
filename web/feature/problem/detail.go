@@ -25,10 +25,13 @@ import (
 	problems.Detail
 
 	@description
+	显示题目细节返回给前端
 
 	@param
+	题目id
 
 	@return
+	题目详细信息 json格式
 */
 func Detail(websocketInputData *model.WebsocketInputData, websocketOutputData *model.WebsocketOutputData) error {
 	mdb, err := database.ReconnectMysqlDatabase()
