@@ -39,10 +39,10 @@ type WebsocketOutputData struct {
 }
 
 type WebsocketUser struct {
-	Account     string `json:"account"`
-	Password    string `json:"password"`
-	LoginByWhat string `json:"loginByWhat"`
-	VerifyCode  string `json:"verifyCode"`
+	ID         int    `json:"userID"`
+	Account    string `json:"account"`
+	Password   string `json:"password"`
+	VerifyCode string `json:"verifyCode"`
 }
 
 type Page struct {

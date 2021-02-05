@@ -54,9 +54,9 @@ type UsersJoinContest struct {
 }
 
 type User struct {
-	ID        int
-	Name      string
-	Password  string
-	Authority string
-	UserInfo  string
+	ID        int    `json:"id"`
+	Name      string `json:"name"`
+	Password  string `json:"password"`
+	Authority string `json:"authority"`
+	UserInfo  string `json:"userInfo"`
 }
