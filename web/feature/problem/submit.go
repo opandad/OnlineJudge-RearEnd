@@ -13,7 +13,11 @@ package problem
 	| Submit              |    no    |    no	 |
 */
 
-import "OnlineJudge-RearEnd/web/model"
+import (
+	"OnlineJudge-RearEnd/api/database"
+	"OnlineJudge-RearEnd/web/model"
+	"errors"
+)
 
 /*
 	正在开发
@@ -31,11 +35,35 @@ import "OnlineJudge-RearEnd/web/model"
 	提交结果
 */
 func Submit(websocketInputData *model.WebsocketInputData, websocketOutputData *model.WebsocketOutputData) error {
+	//尝试连接数据库
+	mdb, err := database.ReconnectMysqlDatabase()
+	if err != nil {
+		return err
+	}
+
 	//查询是否有这个题目
+	var count int64
+	mdb.Where("id = ?", websocketInputData.ProblemID).Count(&count)
+	if count == 0 {
+		return errors.New("没有这个题目！")
+	}
 
-	//是否具备提交资质
+	// //是否具备提交资质
+	// rdb, err := database.ConnectRedisDatabase(0)
+	// if err != nil {
+	// 	return err
+	// }
+	// var ctx context.Context = context.Background()
+	// result, err := rdb.Get(ctx, string(websocketInputData.User.ID)).Result()
+	// if err != nil {
+	// 	return err
+	// }
 
-	//提交进消息队列内
+	// //提交进消息队列内
+	// rdb1, err := database.ConnectRedisDatabase(1)
+	// if err != nil {
+	// 	return err
+	// }
 
 	//提交成功返回nil
 	return nil
