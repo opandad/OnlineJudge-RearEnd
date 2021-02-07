@@ -60,7 +60,6 @@ func SendVerificationCodeToEmailUser(websocketInputData *model.WebsocketInputDat
 	}
 	var count int64
 	mdb.Model(&model.Email{}).Where("email = ?", websocketInputData.User.Account).Count(&count)
-	fmt.Println(count)
 	if count != 0 {
 		return errors.New("账号已经被注册，如果忘记密码，请寻回密码")
 	}

@@ -1,12 +1,31 @@
 package server
 
 import (
+	"OnlineJudge-RearEnd/web/feature/user"
 	"OnlineJudge-RearEnd/web/model"
+	"fmt"
 	"strings"
 )
 
 /*
 	msg格式：login/xxx/xxx
+
+	route list
+
+	--user
+		--login
+			--email
+			--auto
+		--regist
+			--email
+		--userInfo
+		--verifyCode
+			--email
+
+	--problems
+		--list
+		--detail
+		--submit
 */
 func Router(inputData *model.WebsocketInputData) model.WebsocketOutputData {
 	var outputData model.WebsocketOutputData
@@ -14,6 +33,9 @@ func Router(inputData *model.WebsocketInputData) model.WebsocketOutputData {
 	//检测是否为404，解析请求路径
 	var isRoute bool = false
 	var requestPath []string = strings.Split(inputData.RequestPath, "/")
+
+	//test
+	fmt.Println("Router output test\n", inputData, "\n", requestPath)
 
 	//login
 	if requestPath[0] == "user" {
@@ -28,6 +50,13 @@ func Router(inputData *model.WebsocketInputData) model.WebsocketOutputData {
 		if requestPath[1] == "regist" {
 			if requestPath[2] == "email" {
 				isRoute = true
+			}
+
+			if requestPath[2] == "verifyCode" {
+				if requestPath[3] == "email" {
+					isRoute = true
+					user.SendVerificationCodeToEmailUser(inputData, &outputData)
+				}
 			}
 		}
 		if requestPath[1] == "userInfo" {
