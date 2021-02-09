@@ -23,19 +23,11 @@ type WebsocketInputData struct {
 
 type WebsocketOutputData struct {
 	//web
-	WebsocketID    string `json:"websocketID"` //登录用
-	Message        string `json:"msg"`         //About route
-	HTTPStatusCode int    `json:"httpStatusCode"`
-	IsError        bool   `json:"isError"`
-
-	//user
-	User User `json:"user"`
-
-	//about feature
-	Problems []Problem  `json:"problem"`
-	Contests []Contest  `json:"contest"`
-	Language []Language `json:"language"`
-	Submits  []Submit   `json:"submit"`
+	WebsocketID    string        `json:"websocketID"` //登录用
+	Message        string        `json:"msg"`         //About route
+	HTTPStatusCode int           `json:"httpStatusCode"`
+	IsError        bool          `json:"isError"`
+	Data           WebsocketData `json:"data"`
 }
 
 type WebsocketUser struct {
@@ -48,4 +40,12 @@ type WebsocketUser struct {
 type Page struct {
 	PageSize  int `json:"pageSize"`
 	PageIndex int `json:"pageIndex"`
+}
+
+type WebsocketData struct {
+	User     User       `json:"user"`
+	Problems []Problem  `json:"problem"`
+	Contests []Contest  `json:"contest"`
+	Language []Language `json:"language"`
+	Submits  []Submit   `json:"submit"`
 }

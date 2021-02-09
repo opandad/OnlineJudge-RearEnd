@@ -50,7 +50,7 @@ func List(websocketInputData *model.WebsocketInputData, websocketOutputData *mod
 	if err != nil {
 		return err
 	}
-	websocketOutputData.Problems = problems
+	websocketOutputData.Data.Problems = problems
 
 	// fmt.Println(problems)
 	return nil

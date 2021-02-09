@@ -44,6 +44,6 @@ func Detail(websocketInputData *model.WebsocketInputData, websocketOutputData *m
 	if err != nil {
 		return err
 	}
-	websocketOutputData.Problems = []model.Problem{problem}
+	websocketOutputData.Data.Problems = []model.Problem{problem}
 	return nil
 }

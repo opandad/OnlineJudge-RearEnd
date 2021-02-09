@@ -37,7 +37,7 @@ func List(websocketInputData *model.WebsocketInputData, websocketOutputData *mod
 	if err != nil {
 		return err
 	}
-	websocketOutputData.Contests = contests
+	websocketOutputData.Data.Contests = contests
 
 	fmt.Println(contests)
 	return nil
