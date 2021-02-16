@@ -26,14 +26,12 @@ func List(websocketInputData *model.WebsocketInputData, websocketOutputData *mod
 	}
 
 	//分页查询
-	var pageIndex, pageSize int
-	pageIndex, pageSize = 1, 20
-	if pageIndex <= 0 || pageSize <= 0 {
+	if websocketInputData.Page.PageIndex <= 0 || websocketInputData.Page.PageSize <= 0 {
 		return errors.New("非法输入")
 	}
 
 	var contests []model.Contest
-	err = mdb.Debug().Offset((pageIndex-1)*pageSize).Limit(pageSize).Select("id", "name", "start_time").Find(&contests).Error
+	err = mdb.Debug().Offset((websocketInputData.Page.PageIndex-1)*websocketInputData.Page.PageSize).Limit(websocketInputData.Page.PageSize).Select("id", "name", "start_time").Find(&contests).Error
 	if err != nil {
 		return err
 	}
