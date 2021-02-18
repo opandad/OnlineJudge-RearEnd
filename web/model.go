@@ -8,8 +8,6 @@ import "time"
 type ContestsHasProblem struct {
 	ContestsId int
 	ProblemsId int
-
-	Database
 }
 
 type Contest struct {
@@ -18,25 +16,18 @@ type Contest struct {
 	StartTime   time.Time
 	Duration    time.Time
 	ContestInfo string
-
-	Database
 }
 
 type Email struct {
 	Email  string
 	UserID int
 	User   User
-
-	Database
-	Account
 }
 
 type Language struct {
 	ID       int
 	Language string
 	RunCmd   string
-
-	Database
 }
 
 type Problem struct {
@@ -47,8 +38,6 @@ type Problem struct {
 	Fail           int
 	IsRobotProblem bool
 	JudgeerInfo    string
-
-	Database
 }
 
 type Submit struct {
@@ -98,6 +87,7 @@ type FrontEndData struct {
 	IsError     bool   `json:"isError"`
 	ErrorCode   int    `json:"httpStatusCode"`
 	RequestPath string `json:"requestPath"`
+	Function    string `json:"function"`
 	Data        struct {
 		Email               []Email              `json:"email"`
 		User                []User               `json:"user"`
@@ -111,5 +101,6 @@ type FrontEndData struct {
 			PageSize  int `json:"pageSize"`
 			PageIndex int `json:"pageIndex"`
 		} `json:"page"`
+		VerifyCode string `json:"verifyCode"`
 	} `json:"data"`
 }

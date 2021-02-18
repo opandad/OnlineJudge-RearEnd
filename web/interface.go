@@ -10,4 +10,5 @@ type Database interface {
 type Account interface {
 	Login()
 	Logout()
+	Regist()
 }
