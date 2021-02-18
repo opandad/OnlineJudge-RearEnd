@@ -94,3 +94,8 @@ func LoginVerifyCode() {
 func AutoLogin(websocketInputData *model.WebsocketInputData, websocketOutputData *model.WebsocketOutputData) {
 
 }
+
+//<==========================接口代码===================================>
+type User interface {
+	Login(account string, password string) (int, string, error) //返回id，权限，错误
+}
