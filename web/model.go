@@ -67,6 +67,7 @@ type User struct {
 /*
 	<=========================redis model=================================>
 */
+
 /*
 	db:0
 	负责存储验证码信息
@@ -81,6 +82,7 @@ type UserOnlineData struct {
 /*
 	<========================front end model===============================>
 */
+
 type FrontEndData struct {
 	WebsocketID string `json:"websocketID"`
 	Message     string `json:"msg"`
