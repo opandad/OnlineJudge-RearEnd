@@ -87,12 +87,17 @@ type FrontEndData struct {
 	WebsocketID string `json:"websocketID"`
 	Message     string `json:"msg"`
 	IsError     bool   `json:"isError"`
-	ErrorCode   int    `json:"httpStatusCode"`
+	ErrorCode   int    `json:"errorCode"`
 	RequestPath string `json:"requestPath"`
 	Function    string `json:"function"`
 	Data        struct {
-		Email               []Email              `json:"email"`
-		User                []User               `json:"user"`
+		User struct {
+			ID         int    `json:"id"`
+			Account    string `json:"account"`
+			Password   string `json:"password"`
+			Authority  string `json:"authority"`
+			VerifyCode string `json:"verifyCode"`
+		} `json:"user"`
 		Problem             []Problem            `json:"problem"`
 		Contest             []Contest            `json:"contest"`
 		Language            []Language           `json:"language"`
@@ -103,6 +108,5 @@ type FrontEndData struct {
 			PageSize  int `json:"pageSize"`
 			PageIndex int `json:"pageIndex"`
 		} `json:"page"`
-		VerifyCode string `json:"verifyCode"`
 	} `json:"data"`
 }

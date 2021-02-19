@@ -20,6 +20,7 @@ emailAccount, password (string, string)
 userID, authority, error (int, string, error)
 */
 func (account Email) Login() (int, string, error) {
+
 	return -1, "user", nil
 }
 
