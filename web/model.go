@@ -6,54 +6,53 @@ import "time"
 	<================mysql model====================>
 */
 type ContestsHasProblem struct {
-	ContestsId int
-	ProblemsId int
+	ContestsId int `json:"contestsID"`
+	ProblemsId int `json:"problemsID"`
 }
 
 type Contest struct {
-	ID          int
-	Name        string
-	StartTime   time.Time
-	Duration    time.Time
-	ContestInfo string
+	ID          int       `json:"id"`
+	Name        string    `json:"name"`
+	StartTime   time.Time `json:"startTime"`
+	EndTime     time.Time `json:"endTime"`
+	ContestInfo string    `json:"contestInfo`
 }
 
 type Email struct {
-	Email  string
-	UserID int
-	User   User
+	Email  string `json:"email"`
+	UserID int    `json:"userID"`
+	User   User   `json:"user"`
 }
 
 type Language struct {
-	ID       int
-	Language string
-	RunCmd   string
+	ID       int    `json:"id"`
+	Language string `json:"language"`
+	RunCmd   string `json:"runCmd"`
 }
 
 type Problem struct {
-	ID             int
-	Name           string
-	Description    string
-	Accept         int
-	Fail           int
-	IsRobotProblem bool
-	JudgeerInfo    string
+	ID             int    `json:"id"`
+	Name           string `json:"name"`
+	Description    string `json:"description"`
+	IsHideToUser   bool   `json:"isHideToUser"`
+	IsRobotProblem bool   `json:"isRobotProblem"`
+	JudgeerInfo    string `json:"judggerInfo"`
 }
 
 type Submit struct {
-	ID          int
-	SubmitState string
-	RunTime     time.Time
-	SubmitTime  time.Time
-	ProblemsId  int
-	ContestId   int
-	UserId      int
-	LanguageId  int
+	ID          int       `json:"id"`
+	SubmitState string    `json:"submitState"`
+	RunTime     int       `json:"runTime"`
+	SubmitTime  time.Time `json:"submitTime"`
+	ProblemId   int       `json:"problemsID"`
+	ContestId   int       `json:"contestID"`
+	UserId      int       `json:"userID"`
+	LanguageId  int       `json:"languageID"`
 }
 
 type UsersJoinContest struct {
-	UsersId    int
-	ContestsId int
+	UsersId    int `json:"userID"`
+	ContestsId int `json:"contestID"`
 }
 
 type User struct {
@@ -88,16 +87,30 @@ type FrontEndData struct {
 	Message     string `json:"msg"`
 	IsError     bool   `json:"isError"`
 	ErrorCode   int    `json:"errorCode"`
+	SubMessage  string `json:"subMsg"`
 	RequestPath string `json:"requestPath"`
-	Function    string `json:"function"`
+	Method      string `json:"method"`
 	Data        struct {
-		User struct {
+		/*
+			负责登录、验证时使用
+		*/
+		Account struct {
 			ID         int    `json:"id"`
 			Account    string `json:"account"`
 			Password   string `json:"password"`
 			Authority  string `json:"authority"`
 			VerifyCode string `json:"verifyCode"`
-		} `json:"user"`
+		} `json:"account"`
+
+		/*
+			负责修改、删除用户时使用
+		*/
+		Email []Email `json:"email"`
+		User  []User  `json:"user"`
+
+		/*
+			其他东西
+		*/
 		Problem             []Problem            `json:"problem"`
 		Contest             []Contest            `json:"contest"`
 		Language            []Language           `json:"language"`
