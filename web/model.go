@@ -73,13 +73,23 @@ type User struct {
 	key: account
 	value: struct
 */
-type UserOnlineData struct {
+type UserData struct {
 	WebsocketID string `json:"websocketID"`
 	VerifyCode  string `json:"verifyCode"`
+	Authority   string `json:"authority"`
 }
 
 /*
 	<========================front end model===============================>
+	类restful
+	method用于判断
+	post：新建
+	delete：删除
+	put：更新全部信息
+	get：取出资源
+	patch：更新部分信息
+	head
+	options
 */
 
 type FrontEndData struct {
@@ -92,21 +102,11 @@ type FrontEndData struct {
 	Method      string `json:"method"`
 	Data        struct {
 		/*
-			负责登录、验证时使用
+			用户相关
 		*/
-		Account struct {
-			ID         int    `json:"id"`
-			Account    string `json:"account"`
-			Password   string `json:"password"`
-			Authority  string `json:"authority"`
-			VerifyCode string `json:"verifyCode"`
-		} `json:"account"`
-
-		/*
-			负责修改、删除用户时使用
-		*/
-		Email []Email `json:"email"`
-		User  []User  `json:"user"`
+		Email      []Email `json:"email"`
+		User       []User  `json:"user"`
+		VerifyCode string  `json:"verifyCode"`
 
 		/*
 			其他东西

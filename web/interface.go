@@ -17,7 +17,7 @@ type Database interface {
 	model: User, Email
 */
 type Account interface {
-	Login() (string, error) //返回websocketID，权限，错误
+	Login() (User, error) //返回websocketID，权限，错误
 	Logout() error
 	Regist() error
 	AuthLogin() error
