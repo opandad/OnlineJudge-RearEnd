@@ -15,7 +15,7 @@ type Contest struct {
 	Name        string    `json:"name"`
 	StartTime   time.Time `json:"startTime"`
 	EndTime     time.Time `json:"endTime"`
-	ContestInfo string    `json:"contestInfo`
+	ContestInfo string    `json:"contestInfo` //json
 }
 
 type Email struct {
@@ -33,10 +33,10 @@ type Language struct {
 type Problem struct {
 	ID             int    `json:"id"`
 	Name           string `json:"name"`
-	Description    string `json:"description"`
+	Description    string `json:"description"` //json
 	IsHideToUser   bool   `json:"isHideToUser"`
 	IsRobotProblem bool   `json:"isRobotProblem"`
-	JudgeerInfo    string `json:"judggerInfo"`
+	JudgeerInfo    string `json:"judggerInfo"` //json
 }
 
 type Submit struct {
@@ -60,7 +60,7 @@ type User struct {
 	Name      string `json:"name"`
 	Password  string `json:"password"`
 	Authority string `json:"authority"`
-	UserInfo  string `json:"userInfo"`
+	UserInfo  string `json:"userInfo"` //json
 }
 
 /*

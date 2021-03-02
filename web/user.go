@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -28,15 +29,15 @@ import (
 
 	|---------------------------------------------------|
 
-	| Login               |   yes   |    no	    |  yes  |
+	| Login               |   yes   |    yes    |  yes  |
 
-	| Logout              |   yes   |    no	    |  yes  |
+	| Logout              |   yes   |    yes    |  yes  |
 
-	| Regist              |   yes   |    no	    |  no   |
+	| Regist              |   yes   |    yes    |  no   |
 
-	| AuthLogin           |   yes   |    no	    |  yes  |
+	| AuthLogin           |   yes   |    yes    |  yes  |
 
-	| SendVerifyCode      |   yes   |    no	    |  no   |
+	| SendVerifyCode      |   yes   |    yes    |  no   |
 
 	Class name: user
 
@@ -44,13 +45,21 @@ import (
 
 	|--------------------------------------------|
 
-	| Login               |    yes   |    no	 |
+	| Login               |    yes   |    yes	 |
 
-	| Logout              |    yes   |    no	 |
+	| Logout              |    yes   |    yes	 |
 
-	| AuthLogin           |    no    |    no	 |
+	| AuthLogin           |    yes   |    no	 |
 */
-type account interface {
+
+/*
+	bug list
+	退出直接删除，不会验证用户
+	验证用户不会验证是否异地登录
+	用户名唯一bug
+	无批量注册功能
+*/
+type Account interface {
 	Login(websocketID string) (int, HTTPStatus) //返回userID和HTTPStatus
 	Logout(websocketID string) HTTPStatus
 	//Regist(websocketID string, verifiCode string) (int, HTTPStatus) //返回userID和HTTPStatus
@@ -351,7 +360,7 @@ func (account Email) AuthLogin(websocketID string) HTTPStatus {
 	tx := mdb.WithContext(ctx)
 
 	//未查询到账号，前端需要检查并导向首页
-	if errors.Is(tx.Where("email = ? AND password = ?", account.Email, account.User.Password).Find(&account).Error, gorm.ErrRecordNotFound) {
+	if errors.Is(tx.Where("email = ?", account.Email).Find(&account).Error, gorm.ErrRecordNotFound) {
 		return HTTPStatus{
 			Message:     "",
 			IsError:     false,
@@ -361,11 +370,24 @@ func (account Email) AuthLogin(websocketID string) HTTPStatus {
 			Method:      "get",
 		}
 	}
+	password := account.User.Password
+	tx.Model(&account).Association("User").Find(&account.User)
+	if password != account.User.Password {
+		return HTTPStatus{
+			Message:     "登录过期，请重新登录",
+			IsError:     true,
+			ErrorCode:   401,
+			SubMessage:  "password error",
+			RequestPath: "email.authlogin",
+			Method:      "get",
+		}
+	}
 
 	//找rdb授权
 	ctx = context.Background()
 	res, err := rdb.Get(ctx, strconv.Itoa(account.UserID)).Result()
 	if err != nil {
+		fmt.Println(err)
 		return HTTPStatus{
 			Message:     "亲长时间没动了。",
 			IsError:     true,
@@ -376,8 +398,10 @@ func (account Email) AuthLogin(websocketID string) HTTPStatus {
 		}
 	}
 	var userData UserData
-
 	json.Unmarshal([]byte(res), &userData)
+
+	//bug
+	//异地登录不会踢
 
 	return HTTPStatus{
 		Message:     "",
@@ -561,9 +585,19 @@ func (account User) Login(websocketID string) (int, HTTPStatus) {
 	var userData UserData
 	userData.WebsocketID = websocketID
 	userData.Authority = authUser.Authority
-
+	userJsonData, err := json.Marshal(userData)
+	if err != nil {
+		return -1, HTTPStatus{
+			Message:     "服务器出错啦！",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "json marshal error",
+			RequestPath: "user.login",
+			Method:      "get",
+		}
+	}
 	ctx = context.Background()
-	if rdb.Set(ctx, strconv.Itoa(account.ID), userData, time.Minute*30).Err() != nil {
+	if rdb.Set(ctx, strconv.Itoa(account.ID), userJsonData, time.Minute*30).Err() != nil {
 		return -1, HTTPStatus{
 			Message:     "服务器出错啦！",
 			IsError:     true,
@@ -620,49 +654,58 @@ func (account User) Logout(websocketID string) HTTPStatus {
 	}
 }
 
-/*
-	return: id error
-*/
-func (account User) Regist(websocketID string) (int, HTTPStatus) {
-	mdb, err := database.ReconnectMysqlDatabase()
+/**/
+func (account User) AuthLogin(websocketID string) HTTPStatus {
+	rdb, err := database.ConnectRedisDatabase(0)
 	if err != nil {
-		return -1, HTTPStatus{
+		return HTTPStatus{
 			Message:     "服务器出错啦，请稍后重新尝试。",
 			IsError:     true,
 			ErrorCode:   500,
-			SubMessage:  "mysql database connect fail",
-			RequestPath: "user.regist",
-			Method:      "post",
+			SubMessage:  "redis database connect fail",
+			RequestPath: "user.authlogin",
+			Method:      "get",
+		}
+	}
+	ctx := context.Background()
+
+	result, err := rdb.Get(ctx, strconv.Itoa(account.ID)).Result()
+	if err != nil {
+		return HTTPStatus{
+			Message:     "服务器出错啦，请稍后重新尝试。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "redis database connect fail",
+			RequestPath: "user.authlogin",
+			Method:      "get",
+		}
+	}
+	var userData UserData
+	json.Unmarshal([]byte(result), &userData)
+	// 查询是否有login
+	if userData.WebsocketID == "" {
+		return HTTPStatus{
+			Message:     "登录已过期。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "登录已过期",
+			RequestPath: "user.authlogin",
+			Method:      "get",
 		}
 	}
 
-	ctx := context.Background()
-	tx := mdb.WithContext(ctx)
-
-	tx.Create(&account)
-
-	return account.ID, HTTPStatus{
-		Message:     "注册成功 ",
-		IsError:     false,
-		ErrorCode:   0,
-		SubMessage:  "",
-		RequestPath: "",
-		Method:      "",
+	if userData.WebsocketID != websocketID {
+		return HTTPStatus{
+			Message:     "已在其他地方登录。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "已在其他地方登录",
+			RequestPath: "user.authlogin",
+			Method:      "get",
+		}
 	}
-}
 
-/*
-	正在开发中
-*/
-func (account User) AuthLogin(websocketID string) HTTPStatus {
-	// rdb, err := database.ConnectRedisDatabase(0)
-	// if err != nil {
-	// 	return User{}, errors.New("redis数据库连接失败！")
-	// }
-
-	// ctx := context.Background()
-
-	// 查询是否有login
+	// 返回无错误
 	return HTTPStatus{
 		Message:     "",
 		IsError:     false,
