@@ -81,25 +81,11 @@ type UserData struct {
 
 /*
 	<========================front end model===============================>
-	类restful
-	method用于判断
-	post：新建
-	delete：删除
-	put：更新全部信息
-	get：取出资源
-	patch：更新部分信息
-	head
-	options
 */
 
 type FrontEndData struct {
-	WebsocketID string `json:"websocketID"`
-	Message     string `json:"msg"`
-	IsError     bool   `json:"isError"`
-	ErrorCode   int    `json:"errorCode"`
-	SubMessage  string `json:"subMsg"`
-	RequestPath string `json:"requestPath"`
-	Method      string `json:"method"`
+	WebsocketID string     `json:"websocketID"`
+	HTTPStatus  HTTPStatus `json:"httpStatus"`
 	Data        struct {
 		/*
 			用户相关
@@ -123,3 +109,46 @@ type FrontEndData struct {
 		} `json:"page"`
 	} `json:"data"`
 }
+
+/*
+	<==== 无错误填写模板 ====>
+	HTTPStatus{
+		Message: "",
+		IsError: false,
+		ErrorCode: 0,
+		SubMessage: "",
+		RequestPath: "",
+		Method: "",
+	}
+
+	<==== 错误填写模板 ====>
+	HTTPStatus{
+		Message: "",
+		IsError: true,
+		ErrorCode: ,
+		SubMessage: "",
+		RequestPath: "",
+		Method: "",
+	}
+
+	###########################
+	类restful
+	method用于判断
+	post：新建
+	delete：删除
+	put：更新全部信息
+	get：取出资源
+	patch：更新部分信息
+	head
+	options
+*/
+type HTTPStatus struct {
+	Message     string `json:"msg"`
+	IsError     bool   `json:"isError"`
+	ErrorCode   int    `json:"errorCode"`
+	SubMessage  string `json:"subMsg"`
+	RequestPath string `json:"requestPath"` //类路径
+	Method      string `json:"method"`      //方法
+}
+
+// <====================== end ======================>
