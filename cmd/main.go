@@ -2,10 +2,9 @@ package main
 
 import (
 	"OnlineJudge-RearEnd/api/database"
-	"OnlineJudge-RearEnd/web/server"
+	_ "OnlineJudge-RearEnd/web"
 )
 
 func main() {
 	database.InitMysqlDatabase()
-	server.InitServer()
 }

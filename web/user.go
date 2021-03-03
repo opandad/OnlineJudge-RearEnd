@@ -62,7 +62,7 @@ import (
 type Account interface {
 	Login(websocketID string) (int, HTTPStatus) //返回userID和HTTPStatus
 	Logout(websocketID string) HTTPStatus
-	//Regist(websocketID string, verifiCode string) (int, HTTPStatus) //返回userID和HTTPStatus
+	// Regist(websocketID string, verifiCode string) (int, HTTPStatus) //返回userID和HTTPStatus
 	AuthLogin(websocketID string) HTTPStatus
 }
 

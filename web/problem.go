@@ -1,6 +1,11 @@
 package web
 
-import "OnlineJudge-RearEnd/api/database"
+import (
+	"OnlineJudge-RearEnd/api/database"
+	"errors"
+
+	"gorm.io/gorm"
+)
 
 /*
 	@Title
@@ -17,17 +22,24 @@ import "OnlineJudge-RearEnd/api/database"
 
 	|---------------------------------------------------|
 
-	| insert单            |   no    |    no	    |  no   |
+	| insert单            |   yes   |    no	    |  no   |
 
 	| insert多            |   no    |    no	    |  no   |
 
-	| Delete单            |   no    |    no	    |  no   |
+	| Delete单            |   yes   |    no	    |  no   |
 
 	| Delete多            |   no    |    no	    |  no   |
 
-	| Update              |   no    |    no	    |  no   |
+	| Update              |   yes   |    no	    |  no   |
 
-	| Query               |   no    |    no	    |  no   |
+	| QueryDetail         |   yes   |    no	    |  no   |
+
+	| QueryIndex          |   yes   |    no	    |  no   |
+*/
+
+/*
+	bug list
+	没有做权限管理
 */
 
 func (problem Problem) Insert() HTTPStatus {
@@ -109,7 +121,17 @@ func (problem Problem) Delete() HTTPStatus {
 	偶为修改前，奇数为修改后
 	输入的为修改后的
 */
-func (problem Problem) Update(updateProblem Problem) HTTPStatus {
+func (problem Problem) Update() HTTPStatus {
+	if problem.ID <= 0 {
+		return HTTPStatus{
+			Message:     "输入的什么鬼东西",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "id error",
+			RequestPath: "problem.QueryDetail",
+			Method:      "get",
+		}
+	}
 	mdb, err := database.ReconnectMysqlDatabase()
 	if err != nil {
 		return HTTPStatus{
@@ -121,18 +143,116 @@ func (problem Problem) Update(updateProblem Problem) HTTPStatus {
 			Method:      "delete",
 		}
 	}
-	mdb.First(&problem)
+	err = mdb.Save(&problem).Error
+	if err != nil {
+		return HTTPStatus{
+			Message:     "更新失败",
+			IsError:     true,
+			ErrorCode:   1,
+			SubMessage:  "update error, error code is error",
+			RequestPath: "problem.update",
+			Method:      "put",
+		}
+	}
 
-	return HTTPStatus{}
+	return HTTPStatus{
+		Message:     "更新成功",
+		IsError:     false,
+		ErrorCode:   0,
+		SubMessage:  "",
+		RequestPath: "problem.update",
+		Method:      "put",
+	}
 }
 
 /*
 	查询可以优化
 */
 func (problem Problem) QueryIndex(pageIndex int, pageSize int) ([]Problem, HTTPStatus) {
-	return []Problem{}, HTTPStatus{}
+	mdb, err := database.ReconnectMysqlDatabase()
+	if err != nil {
+		return []Problem{}, HTTPStatus{
+			Message:     "服务器出错啦，请稍后重新尝试。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "mysql database connect fail",
+			RequestPath: "problem.delete",
+			Method:      "delete",
+		}
+	}
+
+	//分页查询
+	if pageIndex <= 0 || pageSize <= 0 {
+		return []Problem{}, HTTPStatus{
+			Message:     "非法输入",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "page index or page size input error, error code is error",
+			RequestPath: "problem.QueryIndex",
+			Method:      "get",
+		}
+	}
+
+	var problems []Problem
+	err = mdb.Debug().Offset((pageIndex-1)*pageSize).Limit(pageSize).Select("id", "name", "is_hide_to_user").Find(&problems).Error
+	if err != nil {
+		return []Problem{}, HTTPStatus{
+			Message:     "服务器出错啦，请稍后重新尝试。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "query error",
+			RequestPath: "problem.QueryIndex",
+			Method:      "get",
+		}
+	}
+
+	return problems, HTTPStatus{}
 }
 
+/*
+	需要输入id
+*/
 func (problem Problem) QueryDetail() (Problem, HTTPStatus) {
-	return Problem{}, HTTPStatus{}
+	if problem.ID <= 0 {
+		return Problem{}, HTTPStatus{
+			Message:     "输入的什么鬼东西",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "id error",
+			RequestPath: "problem.QueryDetail",
+			Method:      "get",
+		}
+	}
+
+	mdb, err := database.ReconnectMysqlDatabase()
+	if err != nil {
+		return Problem{}, HTTPStatus{
+			Message:     "服务器出错啦，请稍后重新尝试。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "mysql database connect fail",
+			RequestPath: "problem.QueryDetail",
+			Method:      "get",
+		}
+	}
+
+	if errors.Is(mdb.First(&problem).Error, gorm.ErrRecordNotFound) {
+		return Problem{}, HTTPStatus{
+			Message:     "没有这个题目",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "id error",
+			RequestPath: "problem.QueryDetail",
+			Method:      "get",
+		}
+	}
+
+	return problem, HTTPStatus{
+		Message:     "查询成功",
+		IsError:     false,
+		ErrorCode:   0,
+		SubMessage:  "",
+		RequestPath: "problem.QueryDetail",
+		Method:      "get",
+	}
 }
