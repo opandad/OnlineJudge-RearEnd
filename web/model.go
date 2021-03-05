@@ -48,6 +48,8 @@ type Submit struct {
 	ContestId   int       `json:"contestID"`
 	UserId      int       `json:"userID"`
 	LanguageId  int       `json:"languageID"`
+	IsError     bool      `json:"isError"`
+	SubmitInfo  string    `json:"submitInfo"`
 }
 
 type UsersJoinContest struct {
@@ -61,6 +63,11 @@ type User struct {
 	Password  string `json:"password"`
 	Authority string `json:"authority"`
 	UserInfo  string `json:"userInfo"` //json
+}
+
+type ContestsSupportLanguage struct {
+	ContestsId  int `json:"contestsID"`
+	LanguagesId int `json:"languagesID"`
 }
 
 /*
@@ -148,7 +155,7 @@ type HTTPStatus struct {
 	ErrorCode   int    `json:"errorCode"`
 	SubMessage  string `json:"subMsg"`
 	RequestPath string `json:"requestPath"` //类路径
-	Method      string `json:"method"`      //方法
+	Method      string `json:"method"`      //废弃
 }
 
 // <====================== end ======================>

@@ -10,9 +10,14 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func init() {
-	router := gin.Default()
-	router.Any("/", Websocket)
+/*
+	bug list
+	没有掉线机制，容易被ddos
+*/
+
+func Init() {
+	r := gin.Default()
+	r.Any("/", Websocket)
 
 	// user := router.Group("/user", ping)
 	// {
@@ -37,7 +42,7 @@ func init() {
 	// 	contests.GET("/rank")
 	// }
 
-	router.Run(configs.REAREND_SERVER_IP + ":" + configs.REAREND_SERVER_PORT)
+	r.Run(configs.REAREND_SERVER_IP + ":" + configs.REAREND_SERVER_PORT)
 }
 
 /*
@@ -55,31 +60,21 @@ func Websocket(c *gin.Context) {
 		return
 	}
 	defer ws.Close()
+
 	for {
-		var receiveData, sendData FrontEndData
+		var receiveData FrontEndData
 
-		if ws.ReadJSON(&receiveData) != nil {
-			sendData.HTTPStatus = HTTPStatus{
-				Message:     "服务器内部出错",
-				IsError:     true,
-				ErrorCode:   500,
-				SubMessage:  "json data read error",
-				RequestPath: "web.websocket",
-				Method:      "all",
-			}
+		err = ws.ReadJSON(&receiveData)
+		if err != nil {
+			fmt.Println("error read json data")
+			fmt.Println(err)
+			break
 		} else {
-			sendData = Router(receiveData)
-
-			err = ws.WriteJSON(sendData)
+			err = ws.WriteJSON(Router(receiveData))
 			if err != nil {
-				sendData.HTTPStatus = HTTPStatus{
-					Message:     "服务器内部出错",
-					IsError:     true,
-					ErrorCode:   500,
-					SubMessage:  "json data write error",
-					RequestPath: "web.websocket",
-					Method:      "all",
-				}
+				fmt.Println("error send json data")
+				fmt.Println(err)
+				break
 			}
 		}
 	}
@@ -105,6 +100,7 @@ func Websocket(c *gin.Context) {
 		--detail
 		--submit
 */
+//用户验证统一这里
 func Router(receiveData FrontEndData) FrontEndData {
 	//检测是否为404，解析请求路径
 	var sendData FrontEndData

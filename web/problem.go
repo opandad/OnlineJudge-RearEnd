@@ -32,9 +32,9 @@ import (
 
 	| Update              |   yes   |    no	    |  no   |
 
-	| QueryDetail         |   yes   |    no	    |  no   |
+	| Detail              |   yes   |    no	    |  no   |
 
-	| QueryIndex          |   yes   |    no	    |  no   |
+	| List                |   yes   |    no	    |  no   |
 */
 
 /*
@@ -167,8 +167,11 @@ func (problem Problem) Update() HTTPStatus {
 
 /*
 	查询可以优化
+
+	bug
+	查过头会报错
 */
-func (problem Problem) QueryIndex(pageIndex int, pageSize int) ([]Problem, HTTPStatus) {
+func (problem Problem) List(pageIndex int, pageSize int) ([]Problem, HTTPStatus) {
 	mdb, err := database.ReconnectMysqlDatabase()
 	if err != nil {
 		return []Problem{}, HTTPStatus{
@@ -176,8 +179,8 @@ func (problem Problem) QueryIndex(pageIndex int, pageSize int) ([]Problem, HTTPS
 			IsError:     true,
 			ErrorCode:   500,
 			SubMessage:  "mysql database connect fail",
-			RequestPath: "problem.delete",
-			Method:      "delete",
+			RequestPath: "problem.list",
+			Method:      "get",
 		}
 	}
 
@@ -188,7 +191,7 @@ func (problem Problem) QueryIndex(pageIndex int, pageSize int) ([]Problem, HTTPS
 			IsError:     true,
 			ErrorCode:   500,
 			SubMessage:  "page index or page size input error, error code is error",
-			RequestPath: "problem.QueryIndex",
+			RequestPath: "problem.list",
 			Method:      "get",
 		}
 	}
@@ -201,7 +204,7 @@ func (problem Problem) QueryIndex(pageIndex int, pageSize int) ([]Problem, HTTPS
 			IsError:     true,
 			ErrorCode:   500,
 			SubMessage:  "query error",
-			RequestPath: "problem.QueryIndex",
+			RequestPath: "problem.list",
 			Method:      "get",
 		}
 	}
@@ -212,14 +215,14 @@ func (problem Problem) QueryIndex(pageIndex int, pageSize int) ([]Problem, HTTPS
 /*
 	需要输入id
 */
-func (problem Problem) QueryDetail() (Problem, HTTPStatus) {
+func (problem Problem) Detail() (Problem, HTTPStatus) {
 	if problem.ID <= 0 {
 		return Problem{}, HTTPStatus{
 			Message:     "输入的什么鬼东西",
 			IsError:     true,
 			ErrorCode:   500,
 			SubMessage:  "id error",
-			RequestPath: "problem.QueryDetail",
+			RequestPath: "problem.detail",
 			Method:      "get",
 		}
 	}
@@ -231,7 +234,7 @@ func (problem Problem) QueryDetail() (Problem, HTTPStatus) {
 			IsError:     true,
 			ErrorCode:   500,
 			SubMessage:  "mysql database connect fail",
-			RequestPath: "problem.QueryDetail",
+			RequestPath: "problem.detail",
 			Method:      "get",
 		}
 	}
@@ -242,7 +245,7 @@ func (problem Problem) QueryDetail() (Problem, HTTPStatus) {
 			IsError:     true,
 			ErrorCode:   500,
 			SubMessage:  "id error",
-			RequestPath: "problem.QueryDetail",
+			RequestPath: "problem.detail",
 			Method:      "get",
 		}
 	}
@@ -252,7 +255,7 @@ func (problem Problem) QueryDetail() (Problem, HTTPStatus) {
 		IsError:     false,
 		ErrorCode:   0,
 		SubMessage:  "",
-		RequestPath: "problem.QueryDetail",
+		RequestPath: "problem.detail",
 		Method:      "get",
 	}
 }
