@@ -130,6 +130,7 @@ func Router(receiveData FrontEndData) FrontEndData {
 		if requestPath[1] == "regist" {
 			if requestPath[2] == "email" {
 				isNot404 = true
+				sendData.Data.Email = make([]Email, 1)
 				sendData.Data.Email[0].User.ID, sendData.HTTPStatus = receiveData.Data.Email[0].Regist(receiveData.WebsocketID, receiveData.Data.VerifyCode)
 			}
 		}
@@ -151,6 +152,7 @@ func Router(receiveData FrontEndData) FrontEndData {
 		if requestPath[1] == "detail" {
 			//需要判断题目是否存在，如果不存在返回404
 			isNot404 = true
+			sendData.Data.Problem = make([]Problem, 1)
 			sendData.Data.Problem[0], sendData.HTTPStatus = receiveData.Data.Problem[0].Detail()
 		}
 	}

@@ -60,7 +60,7 @@ func (contest Contest) List(pageIndex int, pageSize int) ([]Contest, HTTPStatus)
 			ErrorCode:   500,
 			SubMessage:  "mysql database connect fail",
 			RequestPath: "contest.list",
-			Method:      "get",
+			Method:      "error",
 		}
 	}
 
@@ -72,7 +72,7 @@ func (contest Contest) List(pageIndex int, pageSize int) ([]Contest, HTTPStatus)
 			ErrorCode:   500,
 			SubMessage:  "page index or page size input error, error code is error",
 			RequestPath: "contest.list",
-			Method:      "get",
+			Method:      "error",
 		}
 	}
 
@@ -85,11 +85,18 @@ func (contest Contest) List(pageIndex int, pageSize int) ([]Contest, HTTPStatus)
 			ErrorCode:   500,
 			SubMessage:  "query error",
 			RequestPath: "contest.list",
-			Method:      "get",
+			Method:      "error",
 		}
 	}
 
-	return contests, HTTPStatus{}
+	return contests, HTTPStatus{
+		Message:     "",
+		IsError:     false,
+		ErrorCode:   0,
+		SubMessage:  "",
+		RequestPath: "",
+		Method:      "",
+	}
 }
 
 /**/
@@ -102,7 +109,7 @@ func (contest Contest) Detail(userID int) (Contest, []ContestsHasProblem, []Cont
 			ErrorCode:   500,
 			SubMessage:  "mysql database connect fail",
 			RequestPath: "contest.list",
-			Method:      "get",
+			Method:      "error",
 		}
 	}
 
@@ -120,7 +127,7 @@ func (contest Contest) Detail(userID int) (Contest, []ContestsHasProblem, []Cont
 			ErrorCode:   500,
 			SubMessage:  "没有找到用户参加比赛的数据，error code is error",
 			RequestPath: "contest.detail",
-			Method:      "get",
+			Method:      "error",
 		}
 	}
 
