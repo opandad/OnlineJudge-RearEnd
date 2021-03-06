@@ -70,6 +70,12 @@ type ContestsSupportLanguage struct {
 	LanguagesId int `json:"languagesID"`
 }
 
+type Team struct {
+	Team   string `json:"team"`
+	UserID int    `json:"userID"`
+	User   User   `json:"user"`
+}
+
 /*
 	<=========================redis model=================================>
 */
@@ -98,6 +104,7 @@ type FrontEndData struct {
 			用户相关
 		*/
 		Email      []Email `json:"email"`
+		Team       []Team  `json:"team"`
 		User       []User  `json:"user"`
 		VerifyCode string  `json:"verifyCode"`
 

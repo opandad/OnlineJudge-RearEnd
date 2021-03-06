@@ -70,7 +70,11 @@ func Websocket(c *gin.Context) {
 			fmt.Println(err)
 			break
 		} else {
-			err = ws.WriteJSON(Router(receiveData))
+			sendData := Router(receiveData)
+
+			fmt.Println(sendData)
+
+			err = ws.WriteJSON(sendData)
 			if err != nil {
 				fmt.Println("error send json data")
 				fmt.Println(err)
@@ -115,6 +119,7 @@ func Router(receiveData FrontEndData) FrontEndData {
 		if requestPath[1] == "login" {
 			if requestPath[2] == "email" {
 				isNot404 = true
+				sendData.Data.Email = make([]Email, 1)
 				sendData.Data.Email[0].User.ID, sendData.HTTPStatus = receiveData.Data.Email[0].Login(receiveData.WebsocketID)
 			}
 			if requestPath[2] == "user" {
@@ -129,7 +134,6 @@ func Router(receiveData FrontEndData) FrontEndData {
 			}
 		}
 		if requestPath[1] == "userInfo" {
-
 		}
 		if requestPath[1] == "verifyCode" {
 			if requestPath[2] == "email" {
@@ -146,10 +150,15 @@ func Router(receiveData FrontEndData) FrontEndData {
 		}
 		if requestPath[1] == "detail" {
 			//需要判断题目是否存在，如果不存在返回404
+			isNot404 = true
+			sendData.Data.Problem[0], sendData.HTTPStatus = receiveData.Data.Problem[0].Detail()
 		}
-		if requestPath[1] == "submit" {
-			//需要验证是否登录
-		}
+	}
+
+	//submit
+	if requestPath[0] == "submit" {
+		//需要验证是否登录
+		sendData.HTTPStatus = receiveData.Data.User[0].AuthLogin(receiveData.WebsocketID)
 	}
 
 	//404 not found
