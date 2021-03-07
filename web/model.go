@@ -30,13 +30,38 @@ type Language struct {
 	RunCmd   string `json:"runCmd"`
 }
 
+type ProblemDescription struct {
+	ProblemDescription string `json:"problemDescription"`
+	InputDescription   string `json:"inputDescription"`
+	OutputDescription  string `json:"outputDescription"`
+	InputRequirements  string `json:"inputRequirements"`
+	OutputRequirements string `json:"outputRequirements"`
+	InputCase          string `json:"inputCase"`
+	OutputCase         string `json:"outputCase"`
+	Tips               string `json:"tips"`
+}
+
+type ProblemJudgeerInfo struct {
+	GCC       int `json:"GCC"`
+	GPlusPlus int `json:"G++"`
+	Java      int `json:"Java"`
+	Python    int `json:"Python"`
+}
+
 type Problem struct {
-	ID             int    `json:"id"`
-	Name           string `json:"name"`
-	Description    string `json:"description"` //json
-	IsHideToUser   bool   `json:"isHideToUser"`
-	IsRobotProblem bool   `json:"isRobotProblem"`
-	JudgeerInfo    string `json:"judggerInfo"` //json
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+
+	// Description string `json:"Description"` //json
+	Description ProblemDescription `json:"description"`
+
+	IsHideToUser   bool `json:"isHideToUser"`
+	IsRobotProblem bool `json:"isRobotProblem"`
+	// JudgeerInfo    string `json:"judggerInfo"` //json
+	JudgeerInfo ProblemJudgeerInfo `json:"judgeerInfo"`
+}
+
+type SubmitInfo struct {
 }
 
 type Submit struct {
@@ -49,7 +74,9 @@ type Submit struct {
 	UserId      int       `json:"userID"`
 	LanguageId  int       `json:"languageID"`
 	IsError     bool      `json:"isError"`
-	SubmitInfo  string    `json:"submitInfo"`
+	// SubmitInfo  string    `json:"submitInfo"`
+
+	SubmitInfo SubmitInfo `json:"submitInfo"`
 }
 
 type UsersJoinContest struct {
@@ -57,12 +84,16 @@ type UsersJoinContest struct {
 	ContestsId int `json:"contestID"`
 }
 
+type UserInfo struct {
+}
+
 type User struct {
-	ID        int    `json:"id"`
-	Name      string `json:"name"`
-	Password  string `json:"password"`
-	Authority string `json:"authority"`
-	UserInfo  string `json:"userInfo"` //json
+	ID        int      `json:"id"`
+	Name      string   `json:"name"`
+	Password  string   `json:"password"`
+	Authority string   `json:"authority"`
+	UserInfo  UserInfo `json:"userInfo"`
+	// UserInfo string `json:"userInfo"`
 }
 
 type ContestsSupportLanguage struct {

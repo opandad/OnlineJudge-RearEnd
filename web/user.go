@@ -92,7 +92,7 @@ func (account Email) Login(websocketID string) (int, HTTPStatus) {
 			ErrorCode:   500,
 			SubMessage:  "mysql database connect fail",
 			RequestPath: "email.login",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 	rdb, err := database.ConnectRedisDatabase(0)
@@ -103,7 +103,7 @@ func (account Email) Login(websocketID string) (int, HTTPStatus) {
 			ErrorCode:   500,
 			SubMessage:  "redis database connect fail",
 			RequestPath: "email.login",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 
@@ -120,7 +120,7 @@ func (account Email) Login(websocketID string) (int, HTTPStatus) {
 			ErrorCode:   406,
 			SubMessage:  "account or password error",
 			RequestPath: "email.login",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 
@@ -135,7 +135,7 @@ func (account Email) Login(websocketID string) (int, HTTPStatus) {
 			ErrorCode:   406,
 			SubMessage:  "account or password error",
 			RequestPath: "email.login",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 
@@ -151,7 +151,7 @@ func (account Email) Login(websocketID string) (int, HTTPStatus) {
 			ErrorCode:   500,
 			SubMessage:  "json marshal fail",
 			RequestPath: "email.login",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 
@@ -163,7 +163,7 @@ func (account Email) Login(websocketID string) (int, HTTPStatus) {
 			ErrorCode:   500,
 			SubMessage:  "redis database set fail",
 			RequestPath: "email.login",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 
@@ -173,7 +173,7 @@ func (account Email) Login(websocketID string) (int, HTTPStatus) {
 		ErrorCode:   0,
 		SubMessage:  "",
 		RequestPath: "email.login",
-		Method:      "get",
+		Method:      "LoginByEmail",
 	}
 }
 
@@ -190,7 +190,7 @@ func (account Email) Logout(websocketID string) HTTPStatus {
 			ErrorCode:   500,
 			SubMessage:  "mysql database connect fail",
 			RequestPath: "email.logout",
-			Method:      "delete",
+			Method:      "",
 		}
 	}
 	rdb, err := database.ConnectRedisDatabase(0)
@@ -201,7 +201,7 @@ func (account Email) Logout(websocketID string) HTTPStatus {
 			ErrorCode:   500,
 			SubMessage:  "redis database connect fail",
 			RequestPath: "email.logout",
-			Method:      "delete",
+			Method:      "",
 		}
 	}
 
@@ -216,7 +216,7 @@ func (account Email) Logout(websocketID string) HTTPStatus {
 			ErrorCode:   404,
 			SubMessage:  "Hacker attack？",
 			RequestPath: "email.logout",
-			Method:      "delete",
+			Method:      "",
 		}
 	}
 
@@ -229,33 +229,33 @@ func (account Email) Logout(websocketID string) HTTPStatus {
 		ErrorCode:   0,
 		SubMessage:  "",
 		RequestPath: "email.logout",
-		Method:      "delete",
+		Method:      "Logout",
 	}
 }
 
 /**/
-func (account Email) Regist(websocketID string, verifiCode string) (int, HTTPStatus) {
+func (account Email) Regist(websocketID string, verifiCode string) (User, HTTPStatus) {
 	//检查数据库是否能够正常连接
 	rdb, err := database.ConnectRedisDatabase(0)
 	if err != nil {
-		return -1, HTTPStatus{
+		return User{}, HTTPStatus{
 			Message:     "服务器出错啦，请稍后重新尝试。",
 			IsError:     true,
 			ErrorCode:   500,
 			SubMessage:  "redis database connect fail",
 			RequestPath: "email.regist",
-			Method:      "post",
+			Method:      "",
 		}
 	}
 	mdb, err := database.ReconnectMysqlDatabase()
 	if err != nil {
-		return -1, HTTPStatus{
+		return User{}, HTTPStatus{
 			Message:     "服务器出错啦，请稍后重新尝试。",
 			IsError:     true,
 			ErrorCode:   500,
 			SubMessage:  "mysql database connect fail",
 			RequestPath: "email.regist",
-			Method:      "post",
+			Method:      "",
 		}
 	}
 
@@ -263,13 +263,13 @@ func (account Email) Regist(websocketID string, verifiCode string) (int, HTTPSta
 	//尝试取数据
 	userDataJSON, err := rdb.Get(ctx, account.Email).Result()
 	if err != nil {
-		return -1, HTTPStatus{
+		return User{}, HTTPStatus{
 			Message:     "验证码已过期，请重新获取验证码。",
 			IsError:     true,
 			ErrorCode:   412,
 			SubMessage:  "verify code = null",
 			RequestPath: "email.regist",
-			Method:      "post",
+			Method:      "",
 		}
 	}
 
@@ -277,25 +277,25 @@ func (account Email) Regist(websocketID string, verifiCode string) (int, HTTPSta
 	var userData UserData
 	err = json.Unmarshal([]byte(userDataJSON), &userData)
 	if err != nil {
-		return -1, HTTPStatus{
+		return User{}, HTTPStatus{
 			Message:     "服务器出错了。",
 			IsError:     true,
 			ErrorCode:   500,
 			SubMessage:  "json to UserData fail",
 			RequestPath: "email.regist",
-			Method:      "post",
+			Method:      "",
 		}
 	}
 
 	//将取出来的验证码比较
 	if userData.VerifyCode != verifiCode {
-		return -1, HTTPStatus{
+		return User{}, HTTPStatus{
 			Message:     "验证码出错了。",
 			IsError:     true,
 			ErrorCode:   412,
 			SubMessage:  "user verify code error",
 			RequestPath: "email.regist",
-			Method:      "post",
+			Method:      "",
 		}
 	}
 
@@ -303,13 +303,13 @@ func (account Email) Regist(websocketID string, verifiCode string) (int, HTTPSta
 	account.User.Name = verification.RandVerificationCode()
 	err = mdb.Create(&account).Error
 	if err != nil {
-		return -1, HTTPStatus{
+		return User{}, HTTPStatus{
 			Message:     "用户已有，请不要重复添加。",
 			IsError:     true,
 			ErrorCode:   500,
 			SubMessage:  "email repeat",
 			RequestPath: "email.regist",
-			Method:      "post",
+			Method:      "",
 		}
 	}
 
@@ -322,13 +322,13 @@ func (account Email) Regist(websocketID string, verifiCode string) (int, HTTPSta
 		Authority:   account.User.Authority,
 	}, time.Minute*30)
 
-	return account.User.ID, HTTPStatus{
+	return account.User, HTTPStatus{
 		Message:     "注册成功",
 		IsError:     false,
 		ErrorCode:   0,
 		SubMessage:  "",
 		RequestPath: "email.resign",
-		Method:      "post",
+		Method:      "LoginByEmail",
 	}
 }
 
@@ -342,7 +342,7 @@ func (account Email) AuthLogin(websocketID string) HTTPStatus {
 			ErrorCode:   500,
 			SubMessage:  "redis database connect fail",
 			RequestPath: "email.authlogin",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 	mdb, err := database.ReconnectMysqlDatabase()
@@ -353,7 +353,7 @@ func (account Email) AuthLogin(websocketID string) HTTPStatus {
 			ErrorCode:   500,
 			SubMessage:  "mysql database connect fail",
 			RequestPath: "email.authlogin",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 	ctx := context.Background()
@@ -367,19 +367,19 @@ func (account Email) AuthLogin(websocketID string) HTTPStatus {
 			ErrorCode:   304,
 			SubMessage:  "",
 			RequestPath: "email.authlogin",
-			Method:      "get",
+			Method:      "ReturnIndex",
 		}
 	}
 	password := account.User.Password
 	tx.Model(&account).Association("User").Find(&account.User)
 	if password != account.User.Password {
 		return HTTPStatus{
-			Message:     "登录过期，请重新登录",
+			Message:     "账号可能被盗。",
 			IsError:     true,
 			ErrorCode:   401,
 			SubMessage:  "password error",
 			RequestPath: "email.authlogin",
-			Method:      "get",
+			Method:      "ReturnIndex",
 		}
 	}
 
@@ -394,7 +394,7 @@ func (account Email) AuthLogin(websocketID string) HTTPStatus {
 			ErrorCode:   401,
 			SubMessage:  "redis get error, expired",
 			RequestPath: "email.authlogin",
-			Method:      "get",
+			Method:      "ReturnIndex",
 		}
 	}
 	var userData UserData
@@ -409,7 +409,7 @@ func (account Email) AuthLogin(websocketID string) HTTPStatus {
 		ErrorCode:   0,
 		SubMessage:  "",
 		RequestPath: "email.authlogin",
-		Method:      "get",
+		Method:      "",
 	}
 }
 
@@ -536,7 +536,7 @@ func (account User) Login(websocketID string) (int, HTTPStatus) {
 			ErrorCode:   500,
 			SubMessage:  "redis database connect fail",
 			RequestPath: "user.login",
-			Method:      "post",
+			Method:      "",
 		}
 	}
 	mdb, err := database.ReconnectMysqlDatabase()
@@ -547,7 +547,7 @@ func (account User) Login(websocketID string) (int, HTTPStatus) {
 			ErrorCode:   500,
 			SubMessage:  "mysql database connect fail",
 			RequestPath: "user.login",
-			Method:      "post",
+			Method:      "",
 		}
 	}
 
@@ -566,7 +566,7 @@ func (account User) Login(websocketID string) (int, HTTPStatus) {
 			ErrorCode:   406,
 			SubMessage:  "account or password error",
 			RequestPath: "user.login",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 
@@ -577,7 +577,7 @@ func (account User) Login(websocketID string) (int, HTTPStatus) {
 			ErrorCode:   406,
 			SubMessage:  "account or password error",
 			RequestPath: "user.login",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 
@@ -593,7 +593,7 @@ func (account User) Login(websocketID string) (int, HTTPStatus) {
 			ErrorCode:   500,
 			SubMessage:  "json marshal error",
 			RequestPath: "user.login",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 	ctx = context.Background()
@@ -604,17 +604,17 @@ func (account User) Login(websocketID string) (int, HTTPStatus) {
 			ErrorCode:   500,
 			SubMessage:  "redis set error",
 			RequestPath: "user.login",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 
 	return account.ID, HTTPStatus{
-		Message:     "登录成功",
+		Message:     "登录成功！",
 		IsError:     false,
 		ErrorCode:   0,
 		SubMessage:  "",
 		RequestPath: "user.login",
-		Method:      "get",
+		Method:      "LoginByUser",
 	}
 }
 
@@ -628,7 +628,7 @@ func (account User) Logout(websocketID string) HTTPStatus {
 			ErrorCode:   500,
 			SubMessage:  "redis database connect fail",
 			RequestPath: "user.logout",
-			Method:      "delete",
+			Method:      "",
 		}
 	}
 
@@ -640,7 +640,7 @@ func (account User) Logout(websocketID string) HTTPStatus {
 			ErrorCode:   500,
 			SubMessage:  "redis database delete fail",
 			RequestPath: "user.logout",
-			Method:      "delete",
+			Method:      "",
 		}
 	}
 
@@ -650,7 +650,7 @@ func (account User) Logout(websocketID string) HTTPStatus {
 		ErrorCode:   0,
 		SubMessage:  "",
 		RequestPath: "user.logout",
-		Method:      "delete",
+		Method:      "Logout",
 	}
 }
 
@@ -664,7 +664,7 @@ func (account User) AuthLogin(websocketID string) HTTPStatus {
 			ErrorCode:   500,
 			SubMessage:  "redis database connect fail",
 			RequestPath: "user.authlogin",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 	ctx := context.Background()
@@ -677,7 +677,7 @@ func (account User) AuthLogin(websocketID string) HTTPStatus {
 			ErrorCode:   500,
 			SubMessage:  "redis database connect fail",
 			RequestPath: "user.authlogin",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 	var userData UserData
@@ -690,7 +690,7 @@ func (account User) AuthLogin(websocketID string) HTTPStatus {
 			ErrorCode:   500,
 			SubMessage:  "登录已过期",
 			RequestPath: "user.authlogin",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 
@@ -701,7 +701,7 @@ func (account User) AuthLogin(websocketID string) HTTPStatus {
 			ErrorCode:   500,
 			SubMessage:  "已在其他地方登录",
 			RequestPath: "user.authlogin",
-			Method:      "get",
+			Method:      "Logout",
 		}
 	}
 
@@ -712,6 +712,6 @@ func (account User) AuthLogin(websocketID string) HTTPStatus {
 		ErrorCode:   0,
 		SubMessage:  "",
 		RequestPath: "user.authlogin",
-		Method:      "get",
+		Method:      "",
 	}
 }

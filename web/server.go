@@ -131,7 +131,7 @@ func Router(receiveData FrontEndData) FrontEndData {
 			if requestPath[2] == "email" {
 				isNot404 = true
 				sendData.Data.Email = make([]Email, 1)
-				sendData.Data.Email[0].User.ID, sendData.HTTPStatus = receiveData.Data.Email[0].Regist(receiveData.WebsocketID, receiveData.Data.VerifyCode)
+				sendData.Data.Email[0].User, sendData.HTTPStatus = receiveData.Data.Email[0].Regist(receiveData.WebsocketID, receiveData.Data.VerifyCode)
 			}
 		}
 		if requestPath[1] == "userInfo" {
@@ -171,7 +171,6 @@ func Router(receiveData FrontEndData) FrontEndData {
 			ErrorCode:   404,
 			SubMessage:  "404",
 			RequestPath: receiveData.HTTPStatus.RequestPath,
-			Method:      receiveData.HTTPStatus.Method,
 		}
 	}
 

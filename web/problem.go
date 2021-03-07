@@ -51,7 +51,7 @@ func (problem Problem) Insert() HTTPStatus {
 			ErrorCode:   500,
 			SubMessage:  "mysql database connect fail",
 			RequestPath: "problem.insert",
-			Method:      "post",
+			Method:      "",
 		}
 	}
 	err = mdb.Create(&problem).Error
@@ -62,7 +62,7 @@ func (problem Problem) Insert() HTTPStatus {
 			ErrorCode:   500,
 			SubMessage:  "mysql insert fail",
 			RequestPath: "problem.insert",
-			Method:      "post",
+			Method:      "",
 		}
 	}
 
@@ -72,7 +72,7 @@ func (problem Problem) Insert() HTTPStatus {
 		ErrorCode:   0,
 		SubMessage:  "",
 		RequestPath: "problem.insert",
-		Method:      "post",
+		Method:      "PostProblem",
 	}
 }
 
@@ -92,7 +92,7 @@ func (problem Problem) Delete() HTTPStatus {
 			ErrorCode:   500,
 			SubMessage:  "mysql database connect fail",
 			RequestPath: "problem.delete",
-			Method:      "delete",
+			Method:      "",
 		}
 	}
 	err = mdb.Delete(&problem).Error
@@ -103,7 +103,7 @@ func (problem Problem) Delete() HTTPStatus {
 			ErrorCode:   403,
 			SubMessage:  "problem delete error, error code is error",
 			RequestPath: "problem.delete",
-			Method:      "delete",
+			Method:      "",
 		}
 	}
 
@@ -113,7 +113,7 @@ func (problem Problem) Delete() HTTPStatus {
 		ErrorCode:   0,
 		SubMessage:  "",
 		RequestPath: "problem.delete",
-		Method:      "delete",
+		Method:      "ReturnProblem",
 	}
 }
 
@@ -128,8 +128,8 @@ func (problem Problem) Update() HTTPStatus {
 			IsError:     true,
 			ErrorCode:   500,
 			SubMessage:  "id error",
-			RequestPath: "problem.QueryDetail",
-			Method:      "get",
+			RequestPath: "problem.Update",
+			Method:      "",
 		}
 	}
 	mdb, err := database.ReconnectMysqlDatabase()
@@ -139,8 +139,8 @@ func (problem Problem) Update() HTTPStatus {
 			IsError:     true,
 			ErrorCode:   500,
 			SubMessage:  "mysql database connect fail",
-			RequestPath: "problem.delete",
-			Method:      "delete",
+			RequestPath: "problem.Update",
+			Method:      "",
 		}
 	}
 	err = mdb.Save(&problem).Error
@@ -151,7 +151,7 @@ func (problem Problem) Update() HTTPStatus {
 			ErrorCode:   1,
 			SubMessage:  "update error, error code is error",
 			RequestPath: "problem.update",
-			Method:      "put",
+			Method:      "",
 		}
 	}
 
@@ -161,7 +161,7 @@ func (problem Problem) Update() HTTPStatus {
 		ErrorCode:   0,
 		SubMessage:  "",
 		RequestPath: "problem.update",
-		Method:      "put",
+		Method:      "PutProblem",
 	}
 }
 
@@ -180,7 +180,7 @@ func (problem Problem) List(pageIndex int, pageSize int) ([]Problem, HTTPStatus)
 			ErrorCode:   500,
 			SubMessage:  "mysql database connect fail",
 			RequestPath: "problem.list",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 
@@ -192,7 +192,7 @@ func (problem Problem) List(pageIndex int, pageSize int) ([]Problem, HTTPStatus)
 			ErrorCode:   500,
 			SubMessage:  "page index or page size input error, error code is error",
 			RequestPath: "problem.list",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 
@@ -205,11 +205,18 @@ func (problem Problem) List(pageIndex int, pageSize int) ([]Problem, HTTPStatus)
 			ErrorCode:   500,
 			SubMessage:  "query error",
 			RequestPath: "problem.list",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 
-	return problems, HTTPStatus{}
+	return problems, HTTPStatus{
+		Message:     "",
+		IsError:     false,
+		ErrorCode:   0,
+		SubMessage:  "",
+		RequestPath: "",
+		Method:      "GetProblemList",
+	}
 }
 
 /*
@@ -223,7 +230,7 @@ func (problem Problem) Detail() (Problem, HTTPStatus) {
 			ErrorCode:   500,
 			SubMessage:  "id error",
 			RequestPath: "problem.detail",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 
@@ -235,7 +242,7 @@ func (problem Problem) Detail() (Problem, HTTPStatus) {
 			ErrorCode:   500,
 			SubMessage:  "mysql database connect fail",
 			RequestPath: "problem.detail",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 
@@ -246,16 +253,16 @@ func (problem Problem) Detail() (Problem, HTTPStatus) {
 			ErrorCode:   500,
 			SubMessage:  "id error",
 			RequestPath: "problem.detail",
-			Method:      "get",
+			Method:      "",
 		}
 	}
 
 	return problem, HTTPStatus{
-		Message:     "查询成功",
+		Message:     "",
 		IsError:     false,
 		ErrorCode:   0,
 		SubMessage:  "",
 		RequestPath: "problem.detail",
-		Method:      "get",
+		Method:      "GetProblemDetail",
 	}
 }
