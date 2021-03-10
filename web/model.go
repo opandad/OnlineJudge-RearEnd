@@ -1,21 +1,28 @@
 package web
 
-import "time"
+import (
+	"time"
+)
 
 /*
-	<================mysql model====================>
+	<=============================mysql model===================================>
+	如有问题看mysql数据库设计
 */
+
 type ContestsHasProblem struct {
 	ContestsId int `json:"contestsID"`
 	ProblemsId int `json:"problemsID"`
 }
 
+type ContestInfo struct {
+}
+
 type Contest struct {
-	ID          int       `json:"id"`
-	Name        string    `json:"name"`
-	StartTime   time.Time `json:"startTime"`
-	EndTime     time.Time `json:"endTime"`
-	ContestInfo string    `json:"contestInfo` //json
+	ID          int         `json:"id"`
+	Name        string      `json:"name"`
+	StartTime   time.Time   `json:"startTime"`
+	EndTime     time.Time   `json:"endTime"`
+	ContestInfo ContestInfo `json:"contestInfo` //json
 }
 
 type Email struct {
@@ -39,13 +46,14 @@ type ProblemDescription struct {
 	InputCase          string `json:"inputCase"`
 	OutputCase         string `json:"outputCase"`
 	Tips               string `json:"tips"`
+	TimeLimit          int    `json:"timeLimit"`
+	MemoryLimit        int    `json:"memoryLimit"`
+	RealTimeLimit      int    `json:"realTimeLimit"`
+	FileSizeLimit      int    `json:"fileSizeLimit"`
 }
 
 type ProblemJudgeerInfo struct {
-	GCC       int `json:"GCC"`
-	GPlusPlus int `json:"G++"`
-	Java      int `json:"Java"`
-	Python    int `json:"Python"`
+	ProblemPath string `json:"problemPath"`
 }
 
 type Problem struct {
@@ -75,7 +83,7 @@ type Submit struct {
 	LanguageId  int       `json:"languageID"`
 	IsError     bool      `json:"isError"`
 	// SubmitInfo  string    `json:"submitInfo"`
-
+	SubmitCode string     `json:"submitCode"`
 	SubmitInfo SubmitInfo `json:"submitInfo"`
 }
 
@@ -121,39 +129,45 @@ type UserData struct {
 	WebsocketID string `json:"websocketID"`
 	VerifyCode  string `json:"verifyCode"`
 	Authority   string `json:"authority"`
+	Password    string `json:"password"`
 }
 
 /*
 	<========================front end model===============================>
 */
 
-type FrontEndData struct {
-	WebsocketID string     `json:"websocketID"`
-	HTTPStatus  HTTPStatus `json:"httpStatus"`
-	Data        struct {
-		/*
-			用户相关
-		*/
-		Email      []Email `json:"email"`
-		Team       []Team  `json:"team"`
-		User       []User  `json:"user"`
-		VerifyCode string  `json:"verifyCode"`
-
-		/*
-			其他东西
-		*/
-		Problem             []Problem            `json:"problem"`
-		Contest             []Contest            `json:"contest"`
-		Language            []Language           `json:"language"`
-		Submit              []Submit             `json:"submit"`
-		ContestsHasProblems []ContestsHasProblem `json:"contestsHasProblems"`
-		UsersJoinContests   []UsersJoinContest   `json:"usersJoinContests"`
-		Page                struct {
-			PageSize  int `json:"pageSize"`
-			PageIndex int `json:"pageIndex"`
-		} `json:"page"`
-	} `json:"data"`
+type Page struct {
+	PageSize  int `json:"pageSize"`
+	PageIndex int `json:"pageIndex"`
 }
+
+// type FrontEndData struct {
+// 	WebsocketID string     `json:"websocketID"`
+// 	HTTPStatus  HTTPStatus `json:"httpStatus"`
+// 	Data        struct {
+// 		/*
+// 			用户相关
+// 		*/
+// 		LoginInfo LoginInfo `json:"loginInfo"`
+// 		Email     []Email   `json:"email"`
+// 		Team      []Team    `json:"team"`
+// 		User      []User    `json:"user"`
+
+// 		/*
+// 			其他东西
+// 		*/
+// 		Problem             []Problem            `json:"problem"`
+// 		Contest             []Contest            `json:"contest"`
+// 		Language            []Language           `json:"language"`
+// 		Submit              []Submit             `json:"submit"`
+// 		ContestsHasProblems []ContestsHasProblem `json:"contestsHasProblems"`
+// 		UsersJoinContests   []UsersJoinContest   `json:"usersJoinContests"`
+// 		Page                struct {
+// 			PageSize  int `json:"pageSize"`
+// 			PageIndex int `json:"pageIndex"`
+// 		} `json:"page"`
+// 	} `json:"data"`
+// }
 
 /*
 	<==== 无错误填写模板 ====>
@@ -195,5 +209,16 @@ type HTTPStatus struct {
 	RequestPath string `json:"requestPath"` //类路径
 	Method      string `json:"method"`      //废弃
 }
+
+type LoginInfo struct {
+	Account     string `json:"account"`
+	UserID      int    `json:"userID"`
+	Password    string `json:"password"`
+	Authority   string `json:"authority"`
+	SnowflakeID string `json:"snowflakeID"`
+	VerifyCode  string `json:"verifyCode"`
+}
+
+//<========================= judger =================>
 
 // <====================== end ======================>

@@ -83,10 +83,10 @@ password, websocketID (string, string)
 @return
 UserID, HTTPStatus
 */
-func (account Email) Login(websocketID string) (int, HTTPStatus) {
+func (account Email) Login(websocketID string) (int, string, HTTPStatus) {
 	mdb, err := database.ReconnectMysqlDatabase()
 	if err != nil {
-		return -1, HTTPStatus{
+		return -1, "", HTTPStatus{
 			Message:     "服务器出错啦，请稍后重新尝试。",
 			IsError:     true,
 			ErrorCode:   500,
@@ -97,7 +97,7 @@ func (account Email) Login(websocketID string) (int, HTTPStatus) {
 	}
 	rdb, err := database.ConnectRedisDatabase(0)
 	if err != nil {
-		return -1, HTTPStatus{
+		return -1, "", HTTPStatus{
 			Message:     "服务器出错啦，请稍后重新尝试。",
 			IsError:     true,
 			ErrorCode:   500,
@@ -114,7 +114,7 @@ func (account Email) Login(websocketID string) (int, HTTPStatus) {
 	emailAccount.Email = account.Email
 	//未查询到账号
 	if errors.Is(tx.Where("email = ?", emailAccount.Email).Find(&emailAccount).Error, gorm.ErrRecordNotFound) {
-		return -1, HTTPStatus{
+		return -1, "", HTTPStatus{
 			Message:     "账号或密码出错啦！",
 			IsError:     true,
 			ErrorCode:   406,
@@ -129,7 +129,7 @@ func (account Email) Login(websocketID string) (int, HTTPStatus) {
 	//TODO 加密，和数据库比较
 
 	if emailAccount.User.Password != account.User.Password {
-		return -1, HTTPStatus{
+		return -1, "", HTTPStatus{
 			Message:     "账号或密码出错啦！",
 			IsError:     true,
 			ErrorCode:   406,
@@ -145,7 +145,7 @@ func (account Email) Login(websocketID string) (int, HTTPStatus) {
 	userData.Authority = emailAccount.User.Authority
 	jsonData, err := json.Marshal(userData)
 	if err != nil {
-		return -1, HTTPStatus{
+		return -1, "", HTTPStatus{
 			Message:     "服务器出错啦。",
 			IsError:     true,
 			ErrorCode:   500,
@@ -157,7 +157,7 @@ func (account Email) Login(websocketID string) (int, HTTPStatus) {
 
 	err = rdb.Set(ctx, strconv.Itoa(emailAccount.User.ID), jsonData, time.Minute*30).Err()
 	if err != nil {
-		return -1, HTTPStatus{
+		return -1, "", HTTPStatus{
 			Message:     "服务器出错啦。",
 			IsError:     true,
 			ErrorCode:   500,
@@ -167,7 +167,7 @@ func (account Email) Login(websocketID string) (int, HTTPStatus) {
 		}
 	}
 
-	return emailAccount.User.ID, HTTPStatus{
+	return emailAccount.User.ID, emailAccount.User.Authority, HTTPStatus{
 		Message:     "登录成功！",
 		IsError:     false,
 		ErrorCode:   0,
@@ -301,6 +301,7 @@ func (account Email) Regist(websocketID string, verifiCode string) (User, HTTPSt
 
 	//加入数据到mysql
 	account.User.Name = verification.RandVerificationCode()
+	account.User.Authority = "user"
 	err = mdb.Create(&account).Error
 	if err != nil {
 		return User{}, HTTPStatus{
@@ -713,5 +714,86 @@ func (account User) AuthLogin(websocketID string) HTTPStatus {
 		SubMessage:  "",
 		RequestPath: "user.authlogin",
 		Method:      "",
+	}
+}
+
+// <======================== login info =============================>
+
+func (loginInfo LoginInfo) AuthLogin() HTTPStatus {
+	if loginInfo.UserID == 0 || loginInfo.SnowflakeID == "" {
+		return HTTPStatus{
+			IsError: false,
+		}
+	}
+
+	rdb, err := database.ConnectRedisDatabase(0)
+	if err != nil {
+		return HTTPStatus{
+			Message:     "服务器出错啦，请稍后重新尝试。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "redis database connect fail",
+			RequestPath: "LoginInfo.AuthLogin",
+			Method:      "error",
+		}
+	}
+
+	ctx := context.Background()
+	result, err := rdb.Get(ctx, strconv.Itoa(loginInfo.UserID)).Result()
+	if err != nil {
+		return HTTPStatus{
+			Message:     "登录过期",
+			IsError:     false,
+			ErrorCode:   500,
+			SubMessage:  "登录过期",
+			RequestPath: "LoginInfo.AuthLogin",
+			Method:      "Logout",
+		}
+	}
+	var authLogin LoginInfo
+	err = json.Unmarshal([]byte(result), &authLogin)
+	if err != nil {
+		return HTTPStatus{
+			Message:     "服务器出错了",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "json unmarshal error",
+			RequestPath: "LoginInfo.AuthLogin",
+			Method:      "error",
+		}
+	}
+
+	if loginInfo.Authority != authLogin.Authority {
+		return HTTPStatus{
+			Message:     "登录过期",
+			IsError:     false,
+			ErrorCode:   500,
+			SubMessage:  "authority error",
+			RequestPath: "LoginInfo.AuthLogin",
+			Method:      "Logout",
+		}
+	}
+	if loginInfo.SnowflakeID != authLogin.Authority {
+		return HTTPStatus{
+			Message:     "在其他地方登录",
+			IsError:     false,
+			ErrorCode:   500,
+			SubMessage:  "websocket error",
+			RequestPath: "LoginInfo.AuthLogin",
+			Method:      "Logout",
+		}
+	}
+	if loginInfo.Password != authLogin.Password {
+		return HTTPStatus{
+			Message:     "账号疑似被盗，请修改密码",
+			IsError:     false,
+			ErrorCode:   500,
+			SubMessage:  "password error",
+			RequestPath: "LoginInfo.AuthLogin",
+			Method:      "Logout",
+		}
+	}
+	return HTTPStatus{
+		IsError: false,
 	}
 }

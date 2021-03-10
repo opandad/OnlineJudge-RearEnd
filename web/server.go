@@ -1,13 +1,14 @@
 package web
 
 import (
+	"OnlineJudge-RearEnd/api/verification"
 	"OnlineJudge-RearEnd/configs"
 	"fmt"
 	"net/http"
-	"strings"
+	"strconv"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 )
 
 /*
@@ -16,163 +17,376 @@ import (
 */
 
 func Init() {
-	r := gin.Default()
-	r.Any("/", Websocket)
+	router := gin.Default()
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	router.Use(cors.New(config))
 
-	// user := router.Group("/user", ping)
-	// {
-	// 	user.POST("/login_by_email", users.LoginByEmail)
-	// 	user.GET("/check_login")
-	// 	user.GET("/regist_by_email", users.RegistByEmail)
-	// 	user.GET("/get_email_verify_code", users.SendVerificationCodeToEmailUser)
-	// 	user.GET("/forget_password_by_email")
-	// }
+	// r.Any("/", Websocket)
+	router.POST("/snowflakeID", authSnowflakeID)
+	router.POST("/authLogin", authLogin)
 
-	// problems := router.Group("/problems")
-	// {
-	// 	problems.GET("/list")
-	// 	problems.GET("/problem")
-	// 	problems.POST("/submit")
-	// }
-
-	// contests := router.Group("/contests")
-	// {
-	// 	contests.GET("/list")
-	// 	contests.GET("/contest")
-	// 	contests.GET("/rank")
-	// }
-
-	r.Run(configs.REAREND_SERVER_IP + ":" + configs.REAREND_SERVER_PORT)
-}
-
-/*
-	获取前端接收数据，并返回数据
-*/
-func Websocket(c *gin.Context) {
-	var upGrader = websocket.Upgrader{
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		},
+	//需要添加函数
+	account := router.Group("/account")
+	{
+		login := account.Group("/login")
+		{
+			login.POST("/user", loginByUser)
+			login.POST("/email", loginByEmail)
+		}
+		account.POST("/logout", logout)
+		regist := account.Group("/regist")
+		{
+			regist.POST("/email", registByEmail)
+		}
+		// userInfo := account.Group("/userInfo")
+		// {
+		// 	userInfo.GET("/user")
+		// 	userInfo.PUT("/user")
+		// }
+		verifyCode := account.Group("/verifyCode")
+		{
+			verifyCode.POST("/email", getEmailVerifyCode)
+		}
 	}
 
-	ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
+	// //problem
+	router.GET("/problem", getProblemList)
+	// router.GET("/problem/:id", getProblemDetail)
+
+	// router.GET("/contest", getContestList)
+	// router.GET("/contest/:id", getContestDetail)
+
+	/*
+		管理函数
+		需要添加验证函数
+	*/
+	// admin := authorized.Group("/admin", authAdmin)
+
+	router.Run(configs.REAREND_SERVER_IP + ":" + configs.REAREND_SERVER_PORT)
+}
+
+func authSnowflakeID(c *gin.Context) {
+	// snowflakeID, err := c.Cookie("snowflakeID")
+	type SnowflakeID struct {
+		SnowflakeID string `json:"snowflakeID"`
+	}
+	var snowflakeID SnowflakeID
+	err := c.BindJSON(&snowflakeID)
 	if err != nil {
-		return
+		c.JSONP(http.StatusNotFound, nil)
 	}
-	defer ws.Close()
 
-	for {
-		var receiveData FrontEndData
+	fmt.Println(snowflakeID)
 
-		err = ws.ReadJSON(&receiveData)
-		if err != nil {
-			fmt.Println("error read json data")
-			fmt.Println(err)
-			break
-		} else {
-			sendData := Router(receiveData)
+	if snowflakeID.SnowflakeID == "" {
+		snowflakeID.SnowflakeID = verification.Snowflake()
+	}
+	c.JSONP(http.StatusOK, snowflakeID)
+}
 
-			fmt.Println(sendData)
+func authLogin(c *gin.Context) {
+	var loginInfo LoginInfo
+	var httpStatus HTTPStatus
+	err := c.BindJSON(&loginInfo)
+	if err != nil {
+		httpStatus.IsError = true
+		httpStatus.Message = "服务器发生错误"
+		c.JSONP(http.StatusUnauthorized, httpStatus)
+	}
 
-			err = ws.WriteJSON(sendData)
-			if err != nil {
-				fmt.Println("error send json data")
-				fmt.Println(err)
-				break
-			}
-		}
+	// if loginInfo.UserID == 0 {
+	// 	httpStatus.IsError = false
+	// 	httpStatus.Message = ""
+	// 	c.JSONP(http.StatusOK, httpStatus)
+	// }
+
+	httpStatus = loginInfo.AuthLogin()
+	if err != nil {
+		httpStatus.IsError = true
+		httpStatus.Message = "服务器发生错误"
+		c.JSONP(http.StatusUnauthorized, httpStatus)
+	}
+
+	fmt.Println(loginInfo)
+	fmt.Println(httpStatus)
+
+	c.JSONP(http.StatusOK, httpStatus)
+}
+
+func authAdmin(c *gin.Context) {
+
+}
+
+func loginByUser(c *gin.Context) {
+
+	// var user User
+
+	// User.Login()
+}
+
+func loginByEmail(c *gin.Context) {
+	// var frontEndData FrontEndData
+	var loginInfo LoginInfo
+	err := c.BindJSON(&loginInfo)
+	if err != nil {
+		fmt.Println(err)
+	}
+	var email Email
+	email.Email = loginInfo.Account
+	email.User.Password = loginInfo.Password
+
+	userID, authority, httpStatus := email.Login(loginInfo.SnowflakeID)
+
+	loginInfo.UserID = userID
+	loginInfo.Password = email.User.Password
+	loginInfo.Authority = authority
+
+	type TmpStruct struct {
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+		LoginInfo  LoginInfo  `json:"loginInfo"`
+	}
+
+	var tmp TmpStruct
+	tmp.LoginInfo = loginInfo
+	tmp.HTTPStatus = httpStatus
+
+	c.JSONP(http.StatusOK, tmp)
+}
+
+func logout(c *gin.Context) {
+	var loginInfo LoginInfo
+	err := c.BindJSON(&loginInfo)
+	if err != nil {
+		fmt.Println(err)
+	}
+	httpStatus := loginInfo.AuthLogin()
+
+	if httpStatus.IsError == false {
+		c.JSONP(http.StatusOK, httpStatus)
+	} else {
+		c.JSONP(http.StatusBadRequest, httpStatus)
 	}
 }
 
-/*
-	msg格式：login/xxx/xxx
-
-	route list
-
-	--user
-		--login
-			--email
-			--auto
-		--regist
-			--email
-		--userInfo
-		--verifyCode
-			--email
-
-	--problems
-		--list
-		--detail
-		--submit
-*/
-//用户验证统一这里
-func Router(receiveData FrontEndData) FrontEndData {
-	//检测是否为404，解析请求路径
-	var sendData FrontEndData
-	var isNot404 bool = false
-	var requestPath []string = strings.Split(receiveData.HTTPStatus.RequestPath, "/")
-
-	//test
-	fmt.Println("Router output test\n", receiveData, "\n", requestPath)
-
-	//account
-	if requestPath[0] == "account" {
-		if requestPath[1] == "login" {
-			if requestPath[2] == "email" {
-				isNot404 = true
-				sendData.Data.Email = make([]Email, 1)
-				sendData.Data.Email[0].User.ID, sendData.HTTPStatus = receiveData.Data.Email[0].Login(receiveData.WebsocketID)
-			}
-			if requestPath[2] == "user" {
-				isNot404 = true
-				_, sendData.HTTPStatus = receiveData.Data.User[0].Login(receiveData.WebsocketID)
-			}
-		}
-		if requestPath[1] == "regist" {
-			if requestPath[2] == "email" {
-				isNot404 = true
-				sendData.Data.Email = make([]Email, 1)
-				sendData.Data.Email[0].User, sendData.HTTPStatus = receiveData.Data.Email[0].Regist(receiveData.WebsocketID, receiveData.Data.VerifyCode)
-			}
-		}
-		if requestPath[1] == "userInfo" {
-		}
-		if requestPath[1] == "verifyCode" {
-			if requestPath[2] == "email" {
-				isNot404 = true
-				sendData.HTTPStatus = receiveData.Data.Email[0].SendVerifyCode()
-			}
-		}
+func registByEmail(c *gin.Context) {
+	var loginInfo LoginInfo
+	err := c.BindJSON(&loginInfo)
+	if err != nil {
+		fmt.Println(err)
 	}
+	var email Email
+	email.Email = loginInfo.Account
+	email.User.Password = loginInfo.Password
 
-	//problems
-	if requestPath[0] == "problems" {
-		if requestPath[1] == "list" {
-			isNot404 = true
-		}
-		if requestPath[1] == "detail" {
-			//需要判断题目是否存在，如果不存在返回404
-			isNot404 = true
-			sendData.Data.Problem = make([]Problem, 1)
-			sendData.Data.Problem[0], sendData.HTTPStatus = receiveData.Data.Problem[0].Detail()
-		}
+	type Tmp struct {
+		User       User       `json:"user"`
+		HTTPStatus HTTPStatus `json:"httpStatus"`
 	}
-
-	//submit
-	if requestPath[0] == "submit" {
-		//需要验证是否登录
-		sendData.HTTPStatus = receiveData.Data.User[0].AuthLogin(receiveData.WebsocketID)
+	var tmp Tmp
+	tmp.User, tmp.HTTPStatus = email.Regist(loginInfo.SnowflakeID, loginInfo.VerifyCode)
+	if tmp.HTTPStatus.IsError == false {
+		c.JSONP(http.StatusBadRequest, tmp)
+	} else {
+		c.JSONP(http.StatusOK, tmp)
 	}
-
-	//404 not found
-	if isNot404 == false {
-		sendData.HTTPStatus = HTTPStatus{
-			Message:     "页面走丢了ToT",
-			IsError:     true,
-			ErrorCode:   404,
-			SubMessage:  "404",
-			RequestPath: receiveData.HTTPStatus.RequestPath,
-		}
-	}
-
-	return sendData
 }
+
+func getEmailVerifyCode(c *gin.Context) {
+	var loginInfo LoginInfo
+	err := c.BindJSON(&loginInfo)
+	if err != nil {
+		fmt.Println(err)
+	}
+	var email Email
+	email.Email = loginInfo.Account
+	httpStatus := email.SendVerifyCode()
+	if httpStatus.IsError == false {
+		c.JSONP(http.StatusOK, httpStatus)
+	} else {
+		c.JSONP(http.StatusBadRequest, httpStatus)
+	}
+}
+
+func getProblemList(c *gin.Context) {
+	var page Page
+	var err error
+	var httpStatus HTTPStatus
+	page.PageIndex, err = strconv.Atoi(c.DefaultQuery("pageIndex", "1"))
+	if err != nil {
+		httpStatus.Message = "服务器内部转int错误"
+		httpStatus.IsError = true
+	}
+	page.PageSize, err = strconv.Atoi(c.DefaultQuery("pageSize", "5"))
+	if err != nil {
+		httpStatus.Message = "服务器内部转int错误"
+		httpStatus.IsError = true
+	}
+
+	var problem []Problem
+	var tempProblem Problem
+	problem = make([]Problem, page.PageSize)
+	problem, httpStatus = tempProblem.List(page.PageIndex, page.PageSize)
+
+	type Tmp struct {
+		HTTPStatus HTTPStatus
+		Problem    []Problem
+	}
+	var tmp Tmp
+	tmp.Problem = problem
+	tmp.HTTPStatus = httpStatus
+
+	c.JSONP(http.StatusOK, tmp)
+}
+
+func getProblemDetail(c *gin.Context) {
+	id := c.Param("id")
+	fmt.Println(id)
+}
+
+func getContestList(c *gin.Context) {
+
+}
+
+func getContestDetail(c *gin.Context) {
+	id := c.Param("id")
+	fmt.Println(id)
+}
+
+// /*
+// 	获取前端接收数据，并返回数据
+// */
+// func Websocket(c *gin.Context) {
+// 	var upGrader = websocket.Upgrader{
+// 		CheckOrigin: func(r *http.Request) bool {
+// 			return true
+// 		},
+// 	}
+
+// 	ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
+// 	if err != nil {
+// 		return
+// 	}
+// 	defer ws.Close()
+
+// 	for {
+// 		var receiveData FrontEndData
+
+// 		err = ws.ReadJSON(&receiveData)
+// 		if err != nil {
+// 			fmt.Println("error read json data")
+// 			fmt.Println(err)
+// 			break
+// 		} else {
+// 			sendData := Router(receiveData)
+
+// 			fmt.Println(sendData)
+
+// 			err = ws.WriteJSON(sendData)
+// 			if err != nil {
+// 				fmt.Println("error send json data")
+// 				fmt.Println(err)
+// 				break
+// 			}
+// 		}
+// 	}
+// }
+
+// /*
+// 	msg格式：login/xxx/xxx
+
+// 	route list
+
+// 	--user
+// 		--login
+// 			--email
+// 			--auto
+// 		--regist
+// 			--email
+// 		--userInfo
+// 		--verifyCode
+// 			--email
+
+// 	--problems
+// 		--list
+// 		--detail
+// 		--submit
+// */
+// func Router(receiveData FrontEndData) FrontEndData {
+// 	//检测是否为404，解析请求路径
+// 	var sendData FrontEndData
+// 	var isNot404 bool = false
+// 	var requestPath []string = strings.Split(receiveData.HTTPStatus.RequestPath, "/")
+
+// 	//验证登录
+// 	// sendData.HTTPStatus = receiveData.Data.LoginInfo.AuthLogin()
+// 	// if sendData.HTTPStatus.IsError == true {
+// 	// 	return sendData
+// 	// }
+
+// 	//test
+// 	fmt.Println("Router output test\n", receiveData, "\n", requestPath)
+
+// 	//account
+// 	if requestPath[0] == "account" {
+// 		if requestPath[1] == "login" {
+// 			if requestPath[2] == "email" {
+// 				isNot404 = true
+// 				sendData.Data.Email = make([]Email, 1)
+// 				sendData.Data.Email[0].User.ID, sendData.HTTPStatus = receiveData.Data.Email[0].Login(receiveData.WebsocketID)
+// 			}
+// 			if requestPath[2] == "user" {
+// 				isNot404 = true
+// 				_, sendData.HTTPStatus = receiveData.Data.User[0].Login(receiveData.WebsocketID)
+// 			}
+// 		}
+// 		if requestPath[1] == "regist" {
+// 			if requestPath[2] == "email" {
+// 				isNot404 = true
+// 				sendData.Data.Email = make([]Email, 1)
+// 				sendData.Data.Email[0].User, sendData.HTTPStatus = receiveData.Data.Email[0].Regist(receiveData.WebsocketID, receiveData.Data.LoginInfo.VerifyCode)
+// 			}
+// 		}
+// 		if requestPath[1] == "userInfo" {
+// 		}
+// 		if requestPath[1] == "verifyCode" {
+// 			if requestPath[2] == "email" {
+// 				isNot404 = true
+// 				sendData.HTTPStatus = receiveData.Data.Email[0].SendVerifyCode()
+// 			}
+// 		}
+// 	}
+
+// 	//problems
+// 	if requestPath[0] == "problem" {
+// 		if requestPath[1] == "list" {
+// 			isNot404 = true
+// 			sendData.Data.Problem = make([]Problem, receiveData.Data.Page.PageSize)
+// 			sendData.Data.Problem, sendData.HTTPStatus = sendData.Data.Problem[0].List(receiveData.Data.Page.PageIndex, receiveData.Data.Page.PageSize)
+// 		}
+// 		if requestPath[1] == "detail" {
+// 			//需要判断题目是否存在，如果不存在返回404
+// 			isNot404 = true
+// 			sendData.Data.Problem = make([]Problem, 1)
+// 			sendData.Data.Problem[0], sendData.HTTPStatus = receiveData.Data.Problem[0].Detail()
+// 		}
+// 	}
+
+// 	//submit
+// 	if requestPath[0] == "submit" && receiveData.Data.LoginInfo.UserID != 0 && receiveData.Data.LoginInfo.Password != "" && receiveData.Data.LoginInfo.WebsocketID != "" {
+// 		receiveData.Data.Submit[0].SubmitAnswer()
+// 	}
+
+// 	//404 not found
+// 	if isNot404 == false {
+// 		sendData.HTTPStatus = HTTPStatus{
+// 			Message:     "页面走丢了ToT",
+// 			IsError:     true,
+// 			ErrorCode:   404,
+// 			SubMessage:  "404",
+// 			RequestPath: receiveData.HTTPStatus.RequestPath,
+// 		}
+// 	}
+
+// 	return sendData
+// }
