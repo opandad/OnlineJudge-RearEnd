@@ -170,8 +170,10 @@ func (problem Problem) Update() HTTPStatus {
 
 	bug
 	查过头会报错
+
+	题目，状态，总数
 */
-func (problem Problem) List(pageIndex int, pageSize int) ([]Problem, HTTPStatus) {
+func (problem Problem) List(pageIndex int, pageSize int) ([]Problem, HTTPStatus, int64) {
 	mdb, err := database.ReconnectMysqlDatabase()
 	if err != nil {
 		return []Problem{}, HTTPStatus{
@@ -181,7 +183,7 @@ func (problem Problem) List(pageIndex int, pageSize int) ([]Problem, HTTPStatus)
 			SubMessage:  "mysql database connect fail",
 			RequestPath: "problem.list",
 			Method:      "",
-		}
+		}, 0
 	}
 
 	//分页查询
@@ -193,21 +195,23 @@ func (problem Problem) List(pageIndex int, pageSize int) ([]Problem, HTTPStatus)
 			SubMessage:  "page index or page size input error, error code is error",
 			RequestPath: "problem.list",
 			Method:      "",
-		}
+		}, 0
 	}
 
 	var problems []Problem
-	err = mdb.Debug().Offset((pageIndex-1)*pageSize).Limit(pageSize).Select("id", "name", "is_hide_to_user").Find(&problems).Error
-	if err != nil {
-		return []Problem{}, HTTPStatus{
-			Message:     "服务器出错啦，请稍后重新尝试。",
-			IsError:     true,
-			ErrorCode:   500,
-			SubMessage:  "query error",
-			RequestPath: "problem.list",
-			Method:      "",
-		}
-	}
+	mdb.Debug().Offset((pageIndex-1)*pageSize).Limit(pageSize).Select("id", "name", "is_hide_to_user").Find(&problems)
+	// if err != nil {
+	// 	return []Problem{}, HTTPStatus{
+	// 		Message:     "服务器出错啦，请稍后重新尝试。",
+	// 		IsError:     true,
+	// 		ErrorCode:   500,
+	// 		SubMessage:  "query error",
+	// 		RequestPath: "problem.list",
+	// 		Method:      "",
+	// 	}, 0
+	// }
+	var count int64
+	mdb.Model(&Problem{}).Count(&count)
 
 	return problems, HTTPStatus{
 		Message:     "",
@@ -216,7 +220,7 @@ func (problem Problem) List(pageIndex int, pageSize int) ([]Problem, HTTPStatus)
 		SubMessage:  "",
 		RequestPath: "",
 		Method:      "GetProblemList",
-	}
+	}, count
 }
 
 /*

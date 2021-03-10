@@ -52,7 +52,7 @@ func Init() {
 
 	// //problem
 	router.GET("/problem", getProblemList)
-	// router.GET("/problem/:id", getProblemDetail)
+	router.GET("/problem/:id", getProblemDetail)
 
 	// router.GET("/contest", getContestList)
 	// router.GET("/contest/:id", getContestDetail)
@@ -77,7 +77,7 @@ func authSnowflakeID(c *gin.Context) {
 		c.JSONP(http.StatusNotFound, nil)
 	}
 
-	fmt.Println(snowflakeID)
+	// fmt.Println(snowflakeID)
 
 	if snowflakeID.SnowflakeID == "" {
 		snowflakeID.SnowflakeID = verification.Snowflake()
@@ -108,8 +108,8 @@ func authLogin(c *gin.Context) {
 		c.JSONP(http.StatusUnauthorized, httpStatus)
 	}
 
-	fmt.Println(loginInfo)
-	fmt.Println(httpStatus)
+	// fmt.Println(loginInfo)
+	// fmt.Println(httpStatus)
 
 	c.JSONP(http.StatusOK, httpStatus)
 }
@@ -225,16 +225,21 @@ func getProblemList(c *gin.Context) {
 
 	var problem []Problem
 	var tempProblem Problem
+	var total int64
 	problem = make([]Problem, page.PageSize)
-	problem, httpStatus = tempProblem.List(page.PageIndex, page.PageSize)
+	problem, httpStatus, total = tempProblem.List(page.PageIndex, page.PageSize)
 
 	type Tmp struct {
-		HTTPStatus HTTPStatus
-		Problem    []Problem
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+		Problem    []Problem  `json:"problem"`
+		Total      int64      `json:"total"`
 	}
 	var tmp Tmp
 	tmp.Problem = problem
 	tmp.HTTPStatus = httpStatus
+	tmp.Total = total
+
+	fmt.Println(total)
 
 	c.JSONP(http.StatusOK, tmp)
 }
@@ -242,6 +247,9 @@ func getProblemList(c *gin.Context) {
 func getProblemDetail(c *gin.Context) {
 	id := c.Param("id")
 	fmt.Println(id)
+	c.JSONP(http.StatusOK, HTTPStatus{
+		Message: "hello" + id,
+	})
 }
 
 func getContestList(c *gin.Context) {

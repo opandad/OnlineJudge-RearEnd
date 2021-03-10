@@ -139,6 +139,7 @@ type UserData struct {
 type Page struct {
 	PageSize  int `json:"pageSize"`
 	PageIndex int `json:"pageIndex"`
+	Total     int `json:"total"`
 }
 
 // type FrontEndData struct {
