@@ -3,9 +3,6 @@ package web
 import (
 	"OnlineJudge-RearEnd/api/database"
 	"context"
-	"errors"
-
-	"gorm.io/gorm"
 )
 
 /*
@@ -45,6 +42,9 @@ import (
 	| Update              |   no    |    no     |
 
 	| Delete              |   yes   |    no     |
+
+	105,153
+	213,238
 */
 
 /*
@@ -99,47 +99,47 @@ func (contest Contest) List(pageIndex int, pageSize int) ([]Contest, HTTPStatus)
 	}
 }
 
-/**/
-func (contest Contest) Detail(userID int) (Contest, []ContestsHasProblem, []ContestsSupportLanguage, HTTPStatus) {
+/*
+	input contest.id
+*/
+func (contest Contest) Detail(userID int) (Contest, []Problem, []Language, HTTPStatus) {
 	mdb, err := database.ReconnectMysqlDatabase()
 	if err != nil {
-		return Contest{}, []ContestsHasProblem{}, []ContestsSupportLanguage{}, HTTPStatus{
+		return Contest{}, []Problem{}, []Language{}, HTTPStatus{
 			Message:     "服务器出错啦，请稍后重新尝试。",
 			IsError:     true,
 			ErrorCode:   500,
 			SubMessage:  "mysql database connect fail",
-			RequestPath: "contest.list",
-			Method:      "",
-		}
-	}
-
-	//链式操作
-	ctx := context.Background()
-	tx := mdb.WithContext(ctx)
-
-	//判断是否参加比赛
-	var usersJoinContest UsersJoinContest
-	err = tx.Where("users_id = ? AND contests_id = ?", userID, contest.ID).Find(&usersJoinContest).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return Contest{}, []ContestsHasProblem{}, []ContestsSupportLanguage{}, HTTPStatus{
-			Message:     "没有参加比赛",
-			IsError:     true,
-			ErrorCode:   500,
-			SubMessage:  "没有找到用户参加比赛的数据，error code is error",
 			RequestPath: "contest.detail",
 			Method:      "",
 		}
 	}
 
-	tx.Where("id = ?", contest.ID).Find(&contest)
+	//链式操作
+	var users []User
+	ctx := context.Background()
+	tx := mdb.WithContext(ctx)
+	tx.Model(&contest).Where("user_id = ?", userID).Association("Users").Find(&users)
 
-	var contestsHasProblems []ContestsHasProblem
-	tx.Where("contests_id = ?", contest.ID).Find(&contestsHasProblems)
+	if len(users) <= 0 {
+		return Contest{}, []Problem{}, []Language{}, HTTPStatus{
+			Message:     "此用户没有参加比赛",
+			IsError:     true,
+			SubMessage:  "此用户没有参加比赛",
+			RequestPath: "contest.detail",
+		}
+	}
 
-	var contestsSupportLanguages []ContestsSupportLanguage
-	tx.Where("contests_id = ?", contest.ID).Find(&contestsSupportLanguages)
+	var problems []Problem
+	var languages []Language
 
-	return contest, contestsHasProblems, contestsSupportLanguages, HTTPStatus{
+	tx.Model(&contest).Association("Problems").Find(&problems)
+	tx.Model(&contest).Association("Languages").Find(&languages)
+
+	// fmt.Println("problems: ", problems)
+	// fmt.Println("languages", languages)
+
+	return contest, problems, languages, HTTPStatus{
 		Message:     "",
 		IsError:     false,
 		ErrorCode:   0,
@@ -149,22 +149,22 @@ func (contest Contest) Detail(userID int) (Contest, []ContestsHasProblem, []Cont
 	}
 }
 
-/**/
-func (contest Contest) Rank() ([]Submit, HTTPStatus) {
-	// mdb, err := database.ReconnectMysqlDatabase()
-	// if err != nil {
-	// 	return []Submit{}, HTTPStatus{
-	// 		Message:     "服务器出错啦，请稍后重新尝试。",
-	// 		IsError:     true,
-	// 		ErrorCode:   500,
-	// 		SubMessage:  "mysql database connect fail",
-	// 		RequestPath: "contest.rank",
-	// 		Method:      "",
-	// 	}
-	// }
+// /**/
+// func (contest Contest) Rank() ([]Submit, HTTPStatus) {
+// 	// mdb, err := database.ReconnectMysqlDatabase()
+// 	// if err != nil {
+// 	// 	return []Submit{}, HTTPStatus{
+// 	// 		Message:     "服务器出错啦，请稍后重新尝试。",
+// 	// 		IsError:     true,
+// 	// 		ErrorCode:   500,
+// 	// 		SubMessage:  "mysql database connect fail",
+// 	// 		RequestPath: "contest.rank",
+// 	// 		Method:      "",
+// 	// 	}
+// 	// }
 
-	return []Submit{}, HTTPStatus{}
-}
+// 	return []Submit{}, HTTPStatus{}
+// }
 
 /*
 	取contest当中的announcement
@@ -214,24 +214,24 @@ func (contest Contest) Update() HTTPStatus {
 
 	可能有bug
 */
-func (contest Contest) Delete() HTTPStatus {
-	mdb, err := database.ReconnectMysqlDatabase()
-	if err != nil {
-		return HTTPStatus{
-			Message:     "服务器出错啦，请稍后重新尝试。",
-			IsError:     true,
-			ErrorCode:   500,
-			SubMessage:  "mysql database connect fail",
-			RequestPath: "contest.rank",
-			Method:      "",
-		}
-	}
+// func (contest Contest) Delete() HTTPStatus {
+// 	mdb, err := database.ReconnectMysqlDatabase()
+// 	if err != nil {
+// 		return HTTPStatus{
+// 			Message:     "服务器出错啦，请稍后重新尝试。",
+// 			IsError:     true,
+// 			ErrorCode:   500,
+// 			SubMessage:  "mysql database connect fail",
+// 			RequestPath: "contest.rank",
+// 			Method:      "",
+// 		}
+// 	}
 
-	mdb.Model(&UsersJoinContest{}).Where("contests_id = ?", contest.ID).Delete(&UsersJoinContest{})
-	mdb.Model(&ContestsSupportLanguage{}).Where("contests_id = ?", contest.ID).Delete(&ContestsSupportLanguage{})
-	mdb.Model(&ContestsHasProblem{}).Where("contests_id = ?", contest.ID).Delete(&ContestsHasProblem{})
+// 	mdb.Model(&UsersJoinContest{}).Where("contests_id = ?", contest.ID).Delete(&UsersJoinContest{})
+// 	mdb.Model(&ContestsSupportLanguage{}).Where("contests_id = ?", contest.ID).Delete(&ContestsSupportLanguage{})
+// 	mdb.Model(&ContestsHasProblem{}).Where("contests_id = ?", contest.ID).Delete(&ContestsHasProblem{})
 
-	mdb.Delete(&contest)
+// 	mdb.Delete(&contest)
 
-	return HTTPStatus{}
-}
+// 	return HTTPStatus{}
+// }

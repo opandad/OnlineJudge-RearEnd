@@ -7,12 +7,17 @@ import (
 /*
 	<=============================mysql model===================================>
 	如有问题看mysql数据库设计
+	ContestsHasProblem
+	ContestsSupportLanguage
+	UsersJoinContest
 */
 
-type ContestsHasProblem struct {
-	ContestsId int `json:"contestsID"`
-	ProblemsId int `json:"problemsID"`
-}
+// type ContestsHasProblem struct {
+// 	ContestsId int     `json:"contestsID"`
+// 	Contest    Contest `json:"contest"`
+// 	ProblemsId int     `json:"problemsID"`
+// 	Problem    Problem `json:"problem"`
+// }
 
 type ContestInfo struct {
 }
@@ -23,6 +28,9 @@ type Contest struct {
 	StartTime   time.Time   `json:"startTime"`
 	EndTime     time.Time   `json:"endTime"`
 	ContestInfo ContestInfo `json:"contestInfo` //json
+	Users       []User      `gorm:"many2many:users_join_contests;"`
+	Languages   []Language  `gorm:"many2many:contests_support_languages;"`
+	Problems    []Problem   `gorm:"many2many:contests_has_problems;"`
 }
 
 type Email struct {
@@ -32,9 +40,9 @@ type Email struct {
 }
 
 type Language struct {
-	ID       int    `json:"id"`
-	Language string `json:"language"`
-	RunCmd   string `json:"runCmd"`
+	ID       int       `json:"id"`
+	Language string    `json:"language"`
+	Contests []Contest `gorm:"many2many:contests_support_languages;"`
 }
 
 type ProblemDescription struct {
@@ -67,6 +75,7 @@ type Problem struct {
 	IsRobotProblem bool `json:"isRobotProblem"`
 	// JudgeerInfo    string `json:"judggerInfo"` //json
 	JudgeerInfo ProblemJudgeerInfo `json:"judgeerInfo"`
+	Contests    []Contest          `gorm:"many2many:contests_has_problems;"`
 }
 
 type SubmitInfo struct {
@@ -78,8 +87,10 @@ type Submit struct {
 	RunTime     int       `json:"runTime"`
 	SubmitTime  time.Time `json:"submitTime"`
 	ProblemId   int       `json:"problemsID"`
+	Problem     Problem   `json:"problem"`
 	ContestId   int       `json:"contestID"`
 	UserId      int       `json:"userID"`
+	User        User      `json:"user"`
 	LanguageId  int       `json:"languageID"`
 	IsError     bool      `json:"isError"`
 	// SubmitInfo  string    `json:"submitInfo"`
@@ -87,27 +98,35 @@ type Submit struct {
 	SubmitInfo SubmitInfo `json:"submitInfo"`
 }
 
-type UsersJoinContest struct {
-	UsersId    int `json:"userID"`
-	ContestsId int `json:"contestID"`
-}
+// type EntryInfo struct {
+// }
+
+// type UsersJoinContest struct {
+// 	UsersId    int       `json:"userID"`
+// 	User       User      `json:"user"`
+// 	ContestsId int       `json:"contestID"`
+// 	Contest    Contest   `json:"contest"`
+// 	EntryInfo  EntryInfo `json:"entryInfo"`
+// }
 
 type UserInfo struct {
 }
 
 type User struct {
-	ID        int      `json:"id"`
-	Name      string   `json:"name"`
-	Password  string   `json:"password"`
-	Authority string   `json:"authority"`
-	UserInfo  UserInfo `json:"userInfo"`
-	// UserInfo string `json:"userInfo"`
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	Password  string    `json:"password"`
+	Authority string    `json:"authority"`
+	UserInfo  UserInfo  `json:"userInfo"`
+	Contests  []Contest `gorm:"many2many:users_join_contests;"`
 }
 
-type ContestsSupportLanguage struct {
-	ContestsId  int `json:"contestsID"`
-	LanguagesId int `json:"languagesID"`
-}
+// type ContestsSupportLanguage struct {
+// 	ContestsId  int      `json:"contestsID" gorm:"primaryKey"`
+// 	Contest     Contest  `json:"contest"`
+// 	LanguagesId int      `json:"languagesID" gorm:"primaryKey"`
+// 	Language    Language `json:"language"`
+// }
 
 type Team struct {
 	Team   string `json:"team"`

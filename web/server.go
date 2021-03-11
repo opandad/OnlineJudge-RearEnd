@@ -39,29 +39,27 @@ func Init() {
 		{
 			regist.POST("/email", registByEmail)
 		}
-		// userInfo := account.Group("/userInfo")
-		// {
-		// 	userInfo.GET("/user")
-		// 	userInfo.PUT("/user")
-		// }
 		verifyCode := account.Group("/verifyCode")
 		{
 			verifyCode.POST("/email", getEmailVerifyCode)
 		}
 	}
 
-	// //problem
+	//problem
 	router.GET("/problem", getProblemList)
 	router.GET("/problem/:id", getProblemDetail)
 
-	// router.GET("/contest", getContestList)
-	// router.GET("/contest/:id", getContestDetail)
+	router.GET("/contest", getContestList)
+	router.GET("/contest/:id", getContestDetail)
+
+	// router.GET("/userInfo/:id")
+	// router.PUT("/userInfo/:id")
 
 	/*
 		管理函数
 		需要添加验证函数
 	*/
-	// admin := authorized.Group("/admin", authAdmin)
+	// admin := router.Group("/admin", authAdmin)
 
 	router.Run(configs.REAREND_SERVER_IP + ":" + configs.REAREND_SERVER_PORT)
 }
@@ -246,9 +244,25 @@ func getProblemList(c *gin.Context) {
 
 func getProblemDetail(c *gin.Context) {
 	id := c.Param("id")
-	fmt.Println(id)
-	c.JSONP(http.StatusOK, HTTPStatus{
-		Message: "hello" + id,
+	var problem Problem
+	var err error
+	var httpStatus HTTPStatus
+	problem.ID, err = strconv.Atoi(id)
+	if err != nil {
+		httpStatus.IsError = true
+		httpStatus.Message = "服务器出现错误"
+		httpStatus.SubMessage = "string转int出现错误，server.getProblemDetail"
+		c.JSONP(http.StatusOK, httpStatus)
+	}
+	problem, httpStatus = problem.Detail()
+
+	type Tmp struct {
+		Problem    Problem    `json:"problem"`
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+	}
+	c.JSONP(http.StatusOK, &Tmp{
+		Problem:    problem,
+		HTTPStatus: httpStatus,
 	})
 }
 
