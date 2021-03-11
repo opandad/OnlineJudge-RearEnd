@@ -49,8 +49,6 @@ type ProblemDescription struct {
 	ProblemDescription string `json:"problemDescription"`
 	InputDescription   string `json:"inputDescription"`
 	OutputDescription  string `json:"outputDescription"`
-	InputRequirements  string `json:"inputRequirements"`
-	OutputRequirements string `json:"outputRequirements"`
 	InputCase          string `json:"inputCase"`
 	OutputCase         string `json:"outputCase"`
 	Tips               string `json:"tips"`

@@ -248,21 +248,30 @@ func getProblemDetail(c *gin.Context) {
 	var err error
 	var httpStatus HTTPStatus
 	problem.ID, err = strconv.Atoi(id)
+	type Tmp struct {
+		Problem    Problem    `json:"problem"`
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+		Languages  []Language `json:"languages"`
+	}
 	if err != nil {
 		httpStatus.IsError = true
 		httpStatus.Message = "服务器出现错误"
 		httpStatus.SubMessage = "string转int出现错误，server.getProblemDetail"
-		c.JSONP(http.StatusOK, httpStatus)
+		c.JSONP(http.StatusOK, &Tmp{
+			HTTPStatus: httpStatus,
+		})
 	}
 	problem, httpStatus = problem.Detail()
+	var language Language
+	var languages []Language
+	languages, httpStatus = language.List()
+	httpStatus.IsError = false
+	httpStatus.Message = ""
 
-	type Tmp struct {
-		Problem    Problem    `json:"problem"`
-		HTTPStatus HTTPStatus `json:"httpStatus"`
-	}
 	c.JSONP(http.StatusOK, &Tmp{
 		Problem:    problem,
 		HTTPStatus: httpStatus,
+		Languages:  languages,
 	})
 }
 
