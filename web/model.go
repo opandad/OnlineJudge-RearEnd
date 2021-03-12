@@ -80,20 +80,18 @@ type SubmitInfo struct {
 }
 
 type Submit struct {
-	ID          int       `json:"id"`
-	SubmitState string    `json:"submitState"`
-	RunTime     int       `json:"runTime"`
-	SubmitTime  time.Time `json:"submitTime"`
-	ProblemId   int       `json:"problemsID"`
-	Problem     Problem   `json:"problem"`
-	ContestId   int       `json:"contestID"`
-	UserId      int       `json:"userID"`
-	User        User      `json:"user"`
-	LanguageId  int       `json:"languageID"`
-	IsError     bool      `json:"isError"`
-	// SubmitInfo  string    `json:"submitInfo"`
-	SubmitCode string     `json:"submitCode"`
-	SubmitInfo SubmitInfo `json:"submitInfo"`
+	ID          int        `json:"id"`
+	SubmitState string     `json:"submitState"`
+	SubmitTime  time.Time  `json:"submitTime"`
+	ProblemId   int        `json:"problemsID"`
+	Problem     Problem    `json:"problem"`
+	ContestId   int        `json:"contestID"`
+	UserId      int        `json:"userID"`
+	User        User       `json:"user"`
+	LanguageId  int        `json:"languageID"`
+	IsError     bool       `json:"isError"`
+	SubmitCode  string     `json:"submitCode"`
+	SubmitInfo  SubmitInfo `json:"submitInfo"`
 }
 
 // type EntryInfo struct {

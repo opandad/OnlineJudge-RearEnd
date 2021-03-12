@@ -1,7 +1,5 @@
 package judger
 
-import "fmt"
-
 func Judger(problemFile string, codeFile string, codeLanguage string) (string, error) {
 	err := InitWorkRoot()
 	if err != nil {
@@ -15,6 +13,5 @@ func Judger(problemFile string, codeFile string, codeLanguage string) (string, e
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(status)
 	return status, nil
 }

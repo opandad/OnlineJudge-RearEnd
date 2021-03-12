@@ -49,19 +49,54 @@ func Init() {
 	router.GET("/problem", getProblemList)
 	router.GET("/problem/:id", getProblemDetail)
 
+	//未完成
 	router.GET("/contest", getContestList)
 	router.GET("/contest/:id", getContestDetail)
 
+	//未完成
 	// router.GET("/userInfo/:id")
 	// router.PUT("/userInfo/:id")
+
+	//未完成
+	router.GET("/submit", getSubmit)
+	router.POST("/submit", submitAnswer)
 
 	/*
 		管理函数
 		需要添加验证函数
 	*/
+	//未完成
 	// admin := router.Group("/admin", authAdmin)
 
 	router.Run(configs.REAREND_SERVER_IP + ":" + configs.REAREND_SERVER_PORT)
+}
+
+func getSubmit(c *gin.Context) {
+
+}
+
+func submitAnswer(c *gin.Context) {
+	type Tmp struct {
+		LoginInfo LoginInfo `json:"loginInfo"`
+		Submit    Submit    `json:"submit"`
+	}
+	var tmp Tmp
+
+	var httpStatus HTTPStatus
+	err := c.BindJSON(&tmp)
+	if err != nil {
+		fmt.Println(err)
+		c.JSONP(http.StatusOK, HTTPStatus{
+			Message: "服务器发生错误，请稍后尝试",
+			IsError: true,
+		})
+	}
+	httpStatus = tmp.LoginInfo.AuthLogin()
+	if httpStatus.IsError == true {
+		c.JSONP(http.StatusOK, httpStatus)
+	}
+	httpStatus = tmp.Submit.SubmitAnswer()
+	c.JSONP(http.StatusOK, httpStatus)
 }
 
 func authSnowflakeID(c *gin.Context) {

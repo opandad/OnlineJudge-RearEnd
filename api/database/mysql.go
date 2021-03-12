@@ -24,7 +24,6 @@ package database
 import (
 	"OnlineJudge-RearEnd/configs"
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
 
@@ -32,6 +31,12 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
+
+var MYSQL_CONNECT *sql.DB = nil
+
+func ReturnMysqlConfig() (string, string) {
+	return "mysql", configs.DATABASE_MYSQL_USER + ":" + configs.DATABASE_MYSQL_PASSWORD + "@tcp(" + configs.DATABASE_MYSQL_SERVER_IP + ":" + configs.DATABASE_MYSQL_SERVER_PORT + ")/" + configs.DATABASE_MYSQL_NAME + "?charset=" + configs.DATABASE_MYSQL_CHARSET + "&parseTime=" + configs.DATABASE_MYSQL_PARSETIME + "&loc=" + configs.DATABASE_MYSQL_LOC
+}
 
 /*
 @Title
@@ -46,35 +51,16 @@ nil
 @return
 db (*sql.DB)
 */
-func ConnectMysqlDatabase() *sql.DB {
-	driver := "mysql"
-	dsn := configs.DATABASE_MYSQL_USER + ":" + configs.DATABASE_MYSQL_PASSWORD + "@tcp(" + configs.DATABASE_MYSQL_SERVER_IP + ":" + configs.DATABASE_MYSQL_SERVER_PORT + ")/" + configs.DATABASE_MYSQL_NAME + "?charset=" + configs.DATABASE_MYSQL_CHARSET + "&parseTime=" + configs.DATABASE_MYSQL_PARSETIME + "&loc=" + configs.DATABASE_MYSQL_LOC
-	db, err := sql.Open(driver, dsn)
+func InitMysqlDatabase() {
+	var err error
+	MYSQL_CONNECT, err = sql.Open(ReturnMysqlConfig())
 	if err != nil {
+		MYSQL_CONNECT.Close()
 		log.Fatal("Connect to database fail:", err)
 	}
-	return db
-}
-
-/*
-@Title
-InitMysqlDatabase
-
-@description
-初始化连接数据库，可以通过configs包下的database.go文件进行连接池配置
-
-@param
-nil
-
-@return
-nil
-*/
-func InitMysqlDatabase() {
-	db := ConnectMysqlDatabase()
-	db.SetMaxIdleConns(configs.DATABASE_MYSQL_MAXIDLECONNS)
-	db.SetMaxOpenConns(configs.DATABASE_MYSQL_MAXOPENCONNS)
-	db.SetConnMaxLifetime(configs.DATABASE_MYSQL_CONNMAXLIFETIME)
-	fmt.Println("Init database success!")
+	MYSQL_CONNECT.SetMaxIdleConns(configs.DATABASE_MYSQL_MAXIDLECONNS)
+	MYSQL_CONNECT.SetMaxOpenConns(configs.DATABASE_MYSQL_MAXOPENCONNS)
+	MYSQL_CONNECT.SetConnMaxLifetime(configs.DATABASE_MYSQL_CONNMAXLIFETIME)
 }
 
 /*
@@ -91,10 +77,10 @@ nil
 db (*gorm.DB)
 */
 func ReconnectMysqlDatabase() (*gorm.DB, error) {
-	mysqlDB := ConnectMysqlDatabase()
-
 	//debug模式
 	if configs.DATABASE_LOG_MODE_DEBUG {
+		// var err error
+		// MYSQL_CONNECT, err = sql.Open(ReturnMysqlConfig())
 		newLogger := logger.New(
 			log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 			logger.Config{
@@ -103,7 +89,7 @@ func ReconnectMysqlDatabase() (*gorm.DB, error) {
 			},
 		)
 		gormDB, err := gorm.Open(mysql.New(mysql.Config{
-			Conn: mysqlDB,
+			Conn: MYSQL_CONNECT,
 		}), &gorm.Config{
 			Logger: newLogger,
 		})
@@ -114,7 +100,7 @@ func ReconnectMysqlDatabase() (*gorm.DB, error) {
 		return gormDB.Session(&gorm.Session{Logger: newLogger}), err
 	} else {
 		gormDB, err := gorm.Open(mysql.New(mysql.Config{
-			Conn: mysqlDB,
+			Conn: MYSQL_CONNECT,
 		}), &gorm.Config{})
 		// if err != nil {
 		// 	log.Fatal("Reconnect to database fail: ", err)
