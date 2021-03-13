@@ -89,7 +89,8 @@ func ReconnectMysqlDatabase() (*gorm.DB, error) {
 			},
 		)
 		gormDB, err := gorm.Open(mysql.New(mysql.Config{
-			Conn: MYSQL_CONNECT,
+			Conn:                     MYSQL_CONNECT,
+			DisableDatetimePrecision: true,
 		}), &gorm.Config{
 			Logger: newLogger,
 		})
@@ -100,7 +101,8 @@ func ReconnectMysqlDatabase() (*gorm.DB, error) {
 		return gormDB.Session(&gorm.Session{Logger: newLogger}), err
 	} else {
 		gormDB, err := gorm.Open(mysql.New(mysql.Config{
-			Conn: MYSQL_CONNECT,
+			Conn:                     MYSQL_CONNECT,
+			DisableDatetimePrecision: true,
 		}), &gorm.Config{})
 		// if err != nil {
 		// 	log.Fatal("Reconnect to database fail: ", err)

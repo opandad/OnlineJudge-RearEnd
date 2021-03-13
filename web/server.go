@@ -51,7 +51,7 @@ func Init() {
 
 	//未完成
 	router.GET("/contest", getContestList)
-	router.GET("/contest/:id", getContestDetail)
+	router.POST("/contest/:id", getContestDetail)
 
 	//未完成
 	// router.GET("/userInfo/:id")
@@ -91,6 +91,8 @@ func submitAnswer(c *gin.Context) {
 			IsError: true,
 		})
 	}
+	fmt.Println(tmp.Submit)
+
 	httpStatus = tmp.LoginInfo.AuthLogin()
 	if httpStatus.IsError == true {
 		c.JSONP(http.StatusOK, httpStatus)
@@ -250,7 +252,7 @@ func getProblemList(c *gin.Context) {
 		httpStatus.Message = "服务器内部转int错误"
 		httpStatus.IsError = true
 	}
-	page.PageSize, err = strconv.Atoi(c.DefaultQuery("pageSize", "5"))
+	page.PageSize, err = strconv.Atoi(c.DefaultQuery("pageSize", "10"))
 	if err != nil {
 		httpStatus.Message = "服务器内部转int错误"
 		httpStatus.IsError = true
@@ -311,12 +313,77 @@ func getProblemDetail(c *gin.Context) {
 }
 
 func getContestList(c *gin.Context) {
+	var page Page
+	var err error
+	type Tmp struct {
+		Page       Page       `json:"page"`
+		Contest    []Contest  `json:"contest"`
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+	}
+	var tmp Tmp
 
+	page.PageIndex, err = strconv.Atoi(c.DefaultQuery("pageIndex", "1"))
+	if err != nil {
+		tmp.HTTPStatus.Message = "服务器内部转int错误"
+		tmp.HTTPStatus.IsError = true
+		tmp.HTTPStatus.RequestPath = "get contest list"
+		c.JSONP(http.StatusOK, tmp)
+	}
+	page.PageSize, err = strconv.Atoi(c.DefaultQuery("pageSize", "5"))
+	if err != nil {
+		tmp.HTTPStatus.Message = "服务器内部转int错误"
+		tmp.HTTPStatus.IsError = true
+		tmp.HTTPStatus.RequestPath = "get contest list"
+		c.JSONP(http.StatusOK, tmp)
+	}
+
+	var tempContest Contest
+	var total int64
+	tmp.Contest, tmp.HTTPStatus, tmp.Page.Total = tempContest.List(page.PageIndex, page.PageSize)
+
+	fmt.Println(total)
+
+	c.JSONP(http.StatusOK, tmp)
 }
 
 func getContestDetail(c *gin.Context) {
 	id := c.Param("id")
-	fmt.Println(id)
+
+	type Tmp struct {
+		LoginInfo  LoginInfo  `json:"loginInfo"`
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+		Contest    Contest    `json:"contest"`
+		Problem    []Problem  `json:"problems"`
+		Language   []Language `json:"languages"`
+	}
+	var tmp Tmp
+	var err error
+	c.BindJSON(&tmp)
+	tmp.Contest.ID, err = strconv.Atoi(id)
+	if err != nil {
+		tmp.HTTPStatus.IsError = true
+		tmp.HTTPStatus.Message = "服务器发生错误，请稍后尝试"
+		tmp.HTTPStatus.SubMessage = "string to int error"
+		tmp.HTTPStatus.RequestPath = "get contest detail"
+		c.JSONP(http.StatusOK, tmp)
+	}
+
+	tmp.HTTPStatus = tmp.LoginInfo.AuthLogin()
+	if tmp.HTTPStatus.IsError == true {
+		c.JSONP(http.StatusOK, tmp)
+	}
+
+	//查询有无竞赛资格
+	var contest Contest
+	contest, tmp.Problem, tmp.Language, tmp.HTTPStatus = tmp.Contest.Detail(tmp.LoginInfo.UserID)
+	tmp.Contest = contest
+
+	tmp.LoginInfo.UserID = 0
+	tmp.LoginInfo.Password = ""
+	tmp.LoginInfo.SnowflakeID = ""
+	tmp.LoginInfo.Authority = ""
+
+	c.JSONP(http.StatusOK, tmp)
 }
 
 // /*

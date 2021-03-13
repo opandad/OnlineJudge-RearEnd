@@ -51,7 +51,7 @@ import (
 	bug
 	查过头会报错
 */
-func (contest Contest) List(pageIndex int, pageSize int) ([]Contest, HTTPStatus) {
+func (contest Contest) List(pageIndex int, pageSize int) ([]Contest, HTTPStatus, int) {
 	mdb, err := database.ReconnectMysqlDatabase()
 	if err != nil {
 		return []Contest{}, HTTPStatus{
@@ -61,7 +61,7 @@ func (contest Contest) List(pageIndex int, pageSize int) ([]Contest, HTTPStatus)
 			SubMessage:  "mysql database connect fail",
 			RequestPath: "contest.list",
 			Method:      "",
-		}
+		}, 0
 	}
 
 	//分页查询
@@ -73,7 +73,7 @@ func (contest Contest) List(pageIndex int, pageSize int) ([]Contest, HTTPStatus)
 			SubMessage:  "page index or page size input error, error code is error",
 			RequestPath: "contest.list",
 			Method:      "",
-		}
+		}, 0
 	}
 
 	var contests []Contest
@@ -86,7 +86,7 @@ func (contest Contest) List(pageIndex int, pageSize int) ([]Contest, HTTPStatus)
 			SubMessage:  "query error",
 			RequestPath: "contest.list",
 			Method:      "",
-		}
+		}, 0
 	}
 
 	return contests, HTTPStatus{
@@ -96,7 +96,7 @@ func (contest Contest) List(pageIndex int, pageSize int) ([]Contest, HTTPStatus)
 		SubMessage:  "",
 		RequestPath: "",
 		Method:      "GetContestList",
-	}
+	}, len(contests)
 }
 
 /*

@@ -5,9 +5,8 @@ INSERT INTO `users` (`id`, `name`, `password`, `authority`, `user_info`) VALUES 
 INSERT INTO `users` (`id`, `name`, `password`, `authority`, `user_info`) VALUES (2, "user", "user", "user", "{}");
 INSERT INTO `online_judge`.`emails` (`email`, `user_id`) VALUES ("admin@qq.com", 1);
 INSERT INTO `online_judge`.`emails` (`email`, `user_id`) VALUES ("user@qq.com", 2);
-INSERT INTO `problems` (`id`, `name`, `description`, `is_hide_to_user`,`is_robot_problem`, `judgeer_info`) VALUES (1, "helloworld", "{}", false, false, "{}");
-INSERT INTO `problems` (`id`, `name`, `description`, `is_hide_to_user`,`is_robot_problem`, `judgeer_info`) VALUES (2, "c++", "{}", false, false, "{}");
-INSERT INTO `contests` (`id`, `name`, `start_time`, `end_time`, `contest_info`) VALUES (1, "练习专用", "2020-12-11 14:00:00", "2099-12-11 16:00:00", "{}");
+INSERT INTO `problems` (`name`,`description`,`is_hide_to_user`,`is_robot_problem`,`judgeer_info`) VALUES ('a+b','{"problemDescription":"如题","inputDescription":"每一次输入包含两个数","outputDescription":"输出一个数","inputCase":"1 2","outputCase":"3","tips":"","timeLimit":1000,"memoryLimit":1000,"realTimeLimit":1000,"fileSizeLimit":1000}',false,false,'{"problemPath":"problems/APlusB/problem.json"}');
+INSERT INTO `contests` (`id`, `name`, `start_time`, `end_time`, `contest_info`) VALUES (1, "练习专用", "2020-12-11 14:00:00", "2022-12-11 16:00:00", "{}");
 INSERT INTO `languages` (`id`, `language`) VALUES (1, "gcc");
 INSERT INTO `languages` (`id`, `language`) VALUES (2, "g++");
 INSERT INTO `languages` (`id`, `language`) VALUES (3, "java");

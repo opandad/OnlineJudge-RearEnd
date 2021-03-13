@@ -77,13 +77,14 @@ type Problem struct {
 }
 
 type SubmitInfo struct {
+	CodeFileName string `json:"codeFileName"`
 }
 
 type Submit struct {
 	ID          int        `json:"id"`
 	SubmitState string     `json:"submitState"`
 	SubmitTime  time.Time  `json:"submitTime"`
-	ProblemId   int        `json:"problemsID"`
+	ProblemId   int        `json:"problemID"`
 	Problem     Problem    `json:"problem"`
 	ContestId   int        `json:"contestID"`
 	UserId      int        `json:"userID"`
