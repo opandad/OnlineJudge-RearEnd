@@ -58,7 +58,7 @@ func Init() {
 	// router.PUT("/userInfo/:id")
 
 	//未完成
-	router.GET("/submit", getSubmit)
+	router.POST("/submit/list", getSubmit)
 	router.POST("/submit", submitAnswer)
 
 	/*
@@ -72,7 +72,33 @@ func Init() {
 }
 
 func getSubmit(c *gin.Context) {
+	type RD struct {
+		Submit Submit `json:"submit"`
+		Page   Page   `json:"page"`
+	}
 
+	var rd RD
+
+	err := c.BindJSON(&rd)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	var submit Submit
+	submits, httpStatus, total := submit.List(rd.Page.PageIndex, rd.Page.PageSize)
+
+	type Tmp struct {
+		Submits    []Submit   `json:"submit"`
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+		Page       Page       `json:"page"`
+	}
+	var tmp Tmp
+	tmp.Submits = submits
+	tmp.HTTPStatus = httpStatus
+	tmp.Page.Total64 = total
+
+	c.JSONP(http.StatusOK, tmp)
 }
 
 func submitAnswer(c *gin.Context) {
@@ -91,7 +117,7 @@ func submitAnswer(c *gin.Context) {
 			IsError: true,
 		})
 	}
-	fmt.Println(tmp.Submit)
+	// fmt.Println(tmp.Submit)
 
 	httpStatus = tmp.LoginInfo.AuthLogin()
 	if httpStatus.IsError == true {

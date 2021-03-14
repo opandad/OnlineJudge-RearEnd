@@ -147,13 +147,44 @@ func (submit Submit) SubmitAnswer() HTTPStatus {
 	mdb.Save(&submit)
 
 	return HTTPStatus{
-		Message:     "",
+		Message:     "提交成功",
 		IsError:     false,
 		SubMessage:  "",
 		RequestPath: "submit.submit",
 	}
 }
 
-func (submit Submit) List() ([]Submit, HTTPStatus) {
-	return []Submit{}, HTTPStatus{}
+func (submit Submit) List(pageIndex int, pageSize int) ([]Submit, HTTPStatus, int64) {
+	if pageIndex <= 0 || pageSize <= 0 {
+		return []Submit{}, HTTPStatus{
+			Message:     "输入错误",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "pageIndex or pageSize error",
+			RequestPath: "submit.list",
+			Method:      "",
+		}, 0
+	}
+
+	mdb, err := database.ReconnectMysqlDatabase()
+	if err != nil {
+		return []Submit{}, HTTPStatus{
+			Message:     "服务器出错啦，请稍后重新尝试。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "mysql database connect fail",
+			RequestPath: "submit.list",
+			Method:      "",
+		}, 0
+	}
+
+	var submits []Submit
+	var total int64
+	mdb.Model(&submit).Where(&submit).Count(&total)
+	mdb.Offset((pageIndex - 1) * pageSize).Limit(pageSize).Where(&submit).Find(&submits)
+	return submits, HTTPStatus{
+		Message:     "",
+		IsError:     false,
+		RequestPath: "submit.list",
+	}, total
 }
