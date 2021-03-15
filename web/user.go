@@ -83,10 +83,10 @@ password, websocketID (string, string)
 @return
 UserID, HTTPStatus
 */
-func (account Email) Login(websocketID string) (int, string, HTTPStatus) {
+func (account Email) Login(websocketID string) (int, string, string, HTTPStatus) {
 	mdb, err := database.ReconnectMysqlDatabase()
 	if err != nil {
-		return -1, "", HTTPStatus{
+		return -1, "", "", HTTPStatus{
 			Message:     "服务器出错啦，请稍后重新尝试。",
 			IsError:     true,
 			ErrorCode:   500,
@@ -97,7 +97,7 @@ func (account Email) Login(websocketID string) (int, string, HTTPStatus) {
 	}
 	rdb, err := database.ConnectRedisDatabase(0)
 	if err != nil {
-		return -1, "", HTTPStatus{
+		return -1, "", "", HTTPStatus{
 			Message:     "服务器出错啦，请稍后重新尝试。",
 			IsError:     true,
 			ErrorCode:   500,
@@ -114,7 +114,7 @@ func (account Email) Login(websocketID string) (int, string, HTTPStatus) {
 	emailAccount.Email = account.Email
 	//未查询到账号
 	if errors.Is(tx.Where("email = ?", emailAccount.Email).Find(&emailAccount).Error, gorm.ErrRecordNotFound) {
-		return -1, "", HTTPStatus{
+		return -1, "", "", HTTPStatus{
 			Message:     "账号或密码出错啦！",
 			IsError:     true,
 			ErrorCode:   406,
@@ -129,7 +129,7 @@ func (account Email) Login(websocketID string) (int, string, HTTPStatus) {
 	//TODO 加密，和数据库比较
 
 	if emailAccount.User.Password != account.User.Password {
-		return -1, "", HTTPStatus{
+		return -1, "", "", HTTPStatus{
 			Message:     "账号或密码出错啦！",
 			IsError:     true,
 			ErrorCode:   406,
@@ -145,7 +145,7 @@ func (account Email) Login(websocketID string) (int, string, HTTPStatus) {
 	userData.Authority = emailAccount.User.Authority
 	jsonData, err := json.Marshal(userData)
 	if err != nil {
-		return -1, "", HTTPStatus{
+		return -1, "", "", HTTPStatus{
 			Message:     "服务器出错啦。",
 			IsError:     true,
 			ErrorCode:   500,
@@ -157,7 +157,7 @@ func (account Email) Login(websocketID string) (int, string, HTTPStatus) {
 
 	err = rdb.Set(ctx, strconv.Itoa(emailAccount.User.ID), jsonData, time.Minute*30).Err()
 	if err != nil {
-		return -1, "", HTTPStatus{
+		return -1, "", "", HTTPStatus{
 			Message:     "服务器出错啦。",
 			IsError:     true,
 			ErrorCode:   500,
@@ -167,7 +167,7 @@ func (account Email) Login(websocketID string) (int, string, HTTPStatus) {
 		}
 	}
 
-	return emailAccount.User.ID, emailAccount.User.Authority, HTTPStatus{
+	return emailAccount.User.ID, emailAccount.User.Authority, emailAccount.User.Name, HTTPStatus{
 		Message:     "登录成功！",
 		IsError:     false,
 		ErrorCode:   0,
@@ -795,5 +795,51 @@ func (loginInfo LoginInfo) AuthLogin() HTTPStatus {
 	}
 	return HTTPStatus{
 		IsError: false,
+	}
+}
+
+func (loginInfo LoginInfo) AuthAdmin() HTTPStatus {
+	if loginInfo.UserID == 0 || loginInfo.SnowflakeID == "" {
+		return HTTPStatus{
+			IsError: false,
+		}
+	}
+
+	mdb, err := database.ReconnectMysqlDatabase()
+	if err != nil {
+		return HTTPStatus{
+			Message:     "服务器出错啦，请稍后重新尝试。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "redis database connect fail",
+			RequestPath: "LoginInfo.AuthLogin",
+			Method:      "error",
+		}
+	}
+
+	ctx := context.Background()
+	tx := mdb.WithContext(ctx)
+	var tmpUser User
+	tmpUser.ID = loginInfo.UserID
+	tmpUser.Password = loginInfo.Password
+	tmpUser.Authority = loginInfo.Authority
+
+	var user User
+	var count int64
+	tx.Where(&tmpUser).Find(&user).Count(&count)
+	if count <= 0 {
+		return HTTPStatus{
+			IsError:    true,
+			Message:    "你不是管理员",
+			SubMessage: "该用户非管理员",
+			Method:     "logininfo.AuthAdmin",
+		}
+	} else {
+		return HTTPStatus{
+			IsError:    false,
+			Message:    "",
+			SubMessage: "",
+			Method:     "logininfo.AuthAdmin",
+		}
 	}
 }

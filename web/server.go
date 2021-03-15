@@ -66,7 +66,16 @@ func Init() {
 		需要添加验证函数
 	*/
 	//未完成
-	// admin := router.Group("/admin", authAdmin)
+	admin := router.Group("/admin", authAdmin)
+	{
+		fmt.Println("route")
+
+		admin.POST("/problem/edit/:id", getProblemEdit)
+		// admin.POST("/problem/edit/:id", editProblem)
+		// admin.POST("/problem/add", addProblem)
+		// admin.DELETE("/problem/delete/:id", deleteProblem)
+		admin.POST("/user/list")
+	}
 
 	router.Run(configs.REAREND_SERVER_IP + ":" + configs.REAREND_SERVER_PORT)
 }
@@ -97,6 +106,8 @@ func getSubmit(c *gin.Context) {
 	tmp.Submits = submits
 	tmp.HTTPStatus = httpStatus
 	tmp.Page.Total64 = total
+	tmp.Page.PageIndex = rd.Page.PageIndex
+	tmp.Page.PageSize = rd.Page.PageSize
 
 	c.JSONP(http.StatusOK, tmp)
 }
@@ -176,7 +187,25 @@ func authLogin(c *gin.Context) {
 }
 
 func authAdmin(c *gin.Context) {
+	fmt.Println("auth admin")
+	fmt.Println(c.Request.Body)
 
+	var loginInfo LoginInfo
+	err := c.BindJSON(&loginInfo)
+	if err != nil{
+		// fmt.Println(err)
+		c.JSONP(http.StatusNotFound, nil)
+	}
+	httpStatus := loginInfo.AuthAdmin()
+	type Tmp struct {
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+	}
+	var tmp Tmp
+	tmp.HTTPStatus = httpStatus
+
+	if tmp.HTTPStatus.IsError {
+		c.JSONP(http.StatusNotFound, tmp)
+	}
 }
 
 func loginByUser(c *gin.Context) {
@@ -197,11 +226,12 @@ func loginByEmail(c *gin.Context) {
 	email.Email = loginInfo.Account
 	email.User.Password = loginInfo.Password
 
-	userID, authority, httpStatus := email.Login(loginInfo.SnowflakeID)
+	userID, authority, userName, httpStatus := email.Login(loginInfo.SnowflakeID)
 
 	loginInfo.UserID = userID
 	loginInfo.Password = email.User.Password
 	loginInfo.Authority = authority
+	loginInfo.UserName = userName
 
 	type TmpStruct struct {
 		HTTPStatus HTTPStatus `json:"httpStatus"`
@@ -335,6 +365,35 @@ func getProblemDetail(c *gin.Context) {
 		Problem:    problem,
 		HTTPStatus: httpStatus,
 		Languages:  languages,
+	})
+}
+
+func getProblemEdit(c *gin.Context) {
+	id := c.Param("id")
+	var problem Problem
+	var err error
+	var httpStatus HTTPStatus
+	problem.ID, err = strconv.Atoi(id)
+	type Tmp struct {
+		Problem    Problem    `json:"problem"`
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+		Languages  []Language `json:"languages"`
+	}
+	if err != nil {
+		httpStatus.IsError = true
+		httpStatus.Message = "服务器出现错误"
+		httpStatus.SubMessage = "string转int出现错误，server.getProblemDetail"
+		c.JSONP(http.StatusOK, &Tmp{
+			HTTPStatus: httpStatus,
+		})
+	}
+	problem, httpStatus = problem.Detail()
+	httpStatus.IsError = false
+	httpStatus.Message = ""
+
+	c.JSONP(http.StatusOK, &Tmp{
+		Problem:    problem,
+		HTTPStatus: httpStatus,
 	})
 }
 

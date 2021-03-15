@@ -5,6 +5,7 @@ import (
 	"OnlineJudge-RearEnd/api/judger"
 	"OnlineJudge-RearEnd/api/verification"
 	"OnlineJudge-RearEnd/configs"
+	"OnlineJudge-RearEnd/utils"
 	"errors"
 	"fmt"
 	"io"
@@ -133,7 +134,7 @@ func (submit Submit) SubmitAnswer() HTTPStatus {
 	}
 
 	submit.SubmitState = result
-	submit.SubmitTime = time.Now()
+	submit.SubmitTime = time.Now().Format(utils.StandardTimeFormat)
 	submit.SubmitInfo.CodeFileName = submitCodeFileName
 
 	if !(result == "Accepted" || result == "Pending") {
@@ -180,8 +181,14 @@ func (submit Submit) List(pageIndex int, pageSize int) ([]Submit, HTTPStatus, in
 
 	var submits []Submit
 	var total int64
-	mdb.Model(&submit).Where(&submit).Count(&total)
-	mdb.Offset((pageIndex - 1) * pageSize).Limit(pageSize).Where(&submit).Find(&submits)
+	mdb.Table("submits").Where(&submit).Count(&total).Order("id desc").Offset((pageIndex - 1) * pageSize).Limit(pageSize).Find(&submits)
+
+	// for i := 0; i < len(submits); i++ {
+
+	// }
+	// fmt.Println(submit)
+	// fmt.Println(total)
+
 	return submits, HTTPStatus{
 		Message:     "",
 		IsError:     false,

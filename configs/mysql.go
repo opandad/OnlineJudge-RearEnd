@@ -12,7 +12,7 @@ const (
 	DATABASE_MYSQL_PASSWORD    string = "qweasd"
 	DATABASE_MYSQL_NAME        string = "online_judge"
 	DATABASE_MYSQL_CHARSET     string = "utf8mb4"
-	DATABASE_MYSQL_PARSETIME   string = "true"
+	DATABASE_MYSQL_PARSETIME   string = "false"
 	DATABASE_MYSQL_LOC         string = "Local"
 
 	//Database connection pool config

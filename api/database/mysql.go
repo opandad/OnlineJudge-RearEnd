@@ -35,7 +35,7 @@ import (
 var MYSQL_CONNECT *sql.DB = nil
 
 func ReturnMysqlConfig() (string, string) {
-	return "mysql", configs.DATABASE_MYSQL_USER + ":" + configs.DATABASE_MYSQL_PASSWORD + "@tcp(" + configs.DATABASE_MYSQL_SERVER_IP + ":" + configs.DATABASE_MYSQL_SERVER_PORT + ")/" + configs.DATABASE_MYSQL_NAME + "?charset=" + configs.DATABASE_MYSQL_CHARSET + "&parseTime=" + configs.DATABASE_MYSQL_PARSETIME + "&loc=" + configs.DATABASE_MYSQL_LOC
+	return "mysql", configs.DATABASE_MYSQL_USER + ":" + configs.DATABASE_MYSQL_PASSWORD + "@tcp(" + configs.DATABASE_MYSQL_SERVER_IP + ":" + configs.DATABASE_MYSQL_SERVER_PORT + ")/" + configs.DATABASE_MYSQL_NAME + "?charset=" + configs.DATABASE_MYSQL_CHARSET //+ "&parseTime=" + configs.DATABASE_MYSQL_PARSETIME + "&loc=" + configs.DATABASE_MYSQL_LOC
 }
 
 /*

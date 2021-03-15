@@ -1,9 +1,5 @@
 package web
 
-import (
-	"time"
-)
-
 /*
 	<=============================mysql model===================================>
 	如有问题看mysql数据库设计
@@ -25,8 +21,8 @@ type ContestInfo struct {
 type Contest struct {
 	ID          int         `json:"id"`
 	Name        string      `json:"name"`
-	StartTime   time.Time   `json:"startTime"`
-	EndTime     time.Time   `json:"endTime"`
+	StartTime   string      `json:"startTime"`
+	EndTime     string      `json:"endTime"`
 	ContestInfo ContestInfo `json:"contestInfo` //json
 	Users       []User      `gorm:"many2many:users_join_contests;"`
 	Languages   []Language  `gorm:"many2many:contests_support_languages;"`
@@ -83,7 +79,7 @@ type SubmitInfo struct {
 type Submit struct {
 	ID          int        `json:"id"`
 	SubmitState string     `json:"submitState"`
-	SubmitTime  time.Time  `json:"submitTime"`
+	SubmitTime  string     `json:"submitTime"`
 	ProblemId   int        `json:"problemID"`
 	Problem     Problem    `json:"problem"`
 	ContestId   int        `json:"contestID"`
@@ -231,6 +227,7 @@ type HTTPStatus struct {
 type LoginInfo struct {
 	Account     string `json:"account"`
 	UserID      int    `json:"userID"`
+	UserName    string `json:"userName"`
 	Password    string `json:"password"`
 	Authority   string `json:"authority"`
 	SnowflakeID string `json:"snowflakeID"`
@@ -238,5 +235,33 @@ type LoginInfo struct {
 }
 
 //<========================= judger =================>
+type TestCase struct {
+	Handle string `json:"handle"`
+	Name   string `json:"name"`
+	Input  string `json:"input"`
+	Output string `json:"output"`
+	Enable bool   `json:"enable"`
+}
+
+type SpecialJudge struct {
+	Mode               int    `json:"mode"`
+	Checker            string `json:"checker"`
+	RedirectProgramOut bool   `json:"redirect_program_out"`
+	TimeLimit          int    `json:"time_limit"`
+	MemoryLimit        int    `json:"memory_limit"`
+	UseTestLib         bool   `json:"use_testlib"`
+	CheckerCases       string `json:"checker_cases"`
+}
+
+type ProblemJudgeInfo struct {
+	TestCase      []TestCase   `json:"test_case"`
+	TimeLimit     int          `json:"time_limit"`
+	MemoryLimit   int          `json:"memory_limit"`
+	RealTimeLimit int          `json:"real_time_limit"`
+	FileSizeLimit int          `json:"file_size_limit"`
+	UID           int          `json:"uid"`
+	StrictMode    bool         `json:"strict_mode"`
+	SpecialJudge  SpecialJudge `json:"special_judge"`
+}
 
 // <====================== end ======================>
