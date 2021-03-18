@@ -235,3 +235,42 @@ func (contest Contest) Update() HTTPStatus {
 
 // 	return HTTPStatus{}
 // }
+
+func (contest Contest) GetEdit() (Contest, []Problem, []Language, HTTPStatus, []User) {
+	mdb, err := database.ReconnectMysqlDatabase()
+	if err != nil {
+		return Contest{}, []Problem{}, []Language{}, HTTPStatus{
+			Message:     "服务器出错啦，请稍后重新尝试。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "mysql database connect fail",
+			RequestPath: "contest.detail",
+			Method:      "",
+		}, []User{}
+	}
+
+	//链式操作
+	ctx := context.Background()
+	tx := mdb.WithContext(ctx)
+
+	var users []User
+	var problems []Problem
+	var languages []Language
+
+	tx.Where(&contest).First(&contest)
+	tx.Model(&contest).Association("Users").Find(&users)
+	tx.Model(&contest).Association("Problems").Find(&problems)
+	tx.Model(&contest).Association("Languages").Find(&languages)
+
+	// fmt.Println("problems: ", problems)
+	// fmt.Println("languages", languages)
+
+	return contest, problems, languages, HTTPStatus{
+		Message:     "",
+		IsError:     false,
+		ErrorCode:   0,
+		SubMessage:  "",
+		RequestPath: "contest.detail",
+		Method:      "GetContestDetail",
+	}, users
+}

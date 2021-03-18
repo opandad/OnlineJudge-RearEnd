@@ -3,13 +3,49 @@ package web
 import (
 	"OnlineJudge-RearEnd/api/verification"
 	"OnlineJudge-RearEnd/configs"
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
+
+func Cors() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		method := c.Request.Method
+		origin := c.Request.Header.Get("Origin") //请求头部
+		if origin != "" {
+			//接收客户端发送的origin （重要！）
+			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+			//服务器支持的所有跨域请求的方法
+			c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE,UPDATE")
+			//允许跨域设置可以返回其他子段，可以自定义字段
+			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, X-CSRF-Token, Token,session,X_Requested_With,Accept, Origin, Host, Connection, Accept-Encoding, Accept-Language,DNT, X-CustomHeader, Keep-Alive, User-Agent, X-Requested-With, If-Modified-Since, Cache-Control, Content-Type, Pragma")
+			// 允许浏览器（客户端）可以解析的头部 （重要）
+			c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers")
+			//设置缓存时间
+			c.Header("Access-Control-Max-Age", "172800")
+			//允许客户端传递校验信息比如 cookie (重要)
+			c.Header("Access-Control-Allow-Credentials", "true")
+		}
+
+		//允许类型校验
+		if method == "OPTIONS" {
+			c.JSON(http.StatusOK, "ok!")
+		}
+
+		defer func() {
+			if err := recover(); err != nil {
+				log.Printf("Panic info is: %v", err)
+			}
+		}()
+		c.Next()
+	}
+}
 
 /*
 	bug list
@@ -18,13 +54,14 @@ import (
 
 func Init() {
 	router := gin.Default()
-	config := cors.DefaultConfig()
-	config.AllowAllOrigins = true
-	router.Use(cors.New(config))
+	router.Use(Cors())
 
 	// r.Any("/", Websocket)
 	router.POST("/snowflakeID", authSnowflakeID)
 	router.POST("/authLogin", authLogin)
+
+	router.OPTIONS("/upload", handleOption)
+	router.POST("/upload", upload)
 
 	//需要添加函数
 	account := router.Group("/account")
@@ -49,7 +86,6 @@ func Init() {
 	router.GET("/problem", getProblemList)
 	router.GET("/problem/:id", getProblemDetail)
 
-	//未完成
 	router.GET("/contest", getContestList)
 	router.POST("/contest/:id", getContestDetail)
 
@@ -57,7 +93,6 @@ func Init() {
 	// router.GET("/userInfo/:id")
 	// router.PUT("/userInfo/:id")
 
-	//未完成
 	router.POST("/submit/list", getSubmit)
 	router.POST("/submit", submitAnswer)
 
@@ -68,16 +103,132 @@ func Init() {
 	//未完成
 	admin := router.Group("/admin", authAdmin)
 	{
-		fmt.Println("route")
-
+		// fmt.Println("route")
+		admin.OPTIONS("/problem/edit/:id", handleOption)
 		admin.POST("/problem/edit/:id", getProblemEdit)
-		// admin.POST("/problem/edit/:id", editProblem)
-		// admin.POST("/problem/add", addProblem)
-		// admin.DELETE("/problem/delete/:id", deleteProblem)
+		admin.PUT("/problem/edit/:id", editProblem)
+		admin.POST("/problem/add", addProblem)
+		admin.DELETE("/problem/delete/:id", deleteProblem)
+		admin.POST("/contest/edit/:id", getContestEdit)
 		admin.POST("/user/list")
 	}
 
 	router.Run(configs.REAREND_SERVER_IP + ":" + configs.REAREND_SERVER_PORT)
+}
+
+func getContestEdit(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		fmt.Println(err)
+		c.String(http.StatusOK, "服务器发生错误")
+	}
+
+	var contest Contest
+	contest.ID = id
+
+	type SendData struct {
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+		Contest    Contest    `json:"contest"`
+		Users      []User     `json:"users"`
+		Problems   []Problem  `json:"problems"`
+		Languages  []Language `json:"languages"`
+	}
+
+	var sendData SendData
+	sendData.Contest, sendData.Problems, sendData.Languages, sendData.HTTPStatus, sendData.Users = contest.GetEdit()
+
+	c.JSONP(http.StatusOK, sendData)
+}
+
+func handleOption(c *gin.Context) {
+	c.JSONP(http.StatusOK, nil)
+}
+
+func upload(c *gin.Context) {
+	// str := c.Request.Body
+	// fmt.Println(str)
+
+	// Multipart form
+	err := c.Request.ParseMultipartForm(32 << 20) // 32Mb
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(form)
+
+	files := form.File["file"]
+
+	for i, file := range files {
+		fmt.Println(i)
+		fmt.Println(file.Filename)
+
+		// 上传文件至指定目录
+		c.SaveUploadedFile(file, configs.JUDGER_UPLOAD_TEMP_FILE_PATH)
+	}
+	fmt.Printf("%d files uploaded!", len(files))
+	c.Next()
+}
+
+func deleteProblem(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	type SendData struct {
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+	}
+
+	if err != nil {
+		c.JSONP(http.StatusOK, &SendData{
+			HTTPStatus: HTTPStatus{
+				Message:    "服务器发生错误，稍后尝试",
+				IsError:    true,
+				SubMessage: "id获取错误",
+			},
+		})
+	}
+	var problem Problem
+	problem.ID = id
+
+	c.JSONP(http.StatusOK, &SendData{
+		HTTPStatus: problem.Delete(),
+	})
+}
+
+func addProblem(c *gin.Context) {
+	type ReceiveData struct {
+		Problem Problem `json:"problem"`
+	}
+	var rd ReceiveData
+	c.BindJSON(&rd)
+
+	c.JSONP(http.StatusOK, rd.Problem.Insert())
+}
+
+func editProblem(c *gin.Context) {
+	type ReceiveData struct {
+		LoginInfo LoginInfo `json:"loginInfo"`
+		Problem   Problem   `json:"problem"`
+	}
+
+	var rd ReceiveData
+
+	err := c.BindJSON(&rd)
+	// fmt.Println(rd)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	type SendData struct {
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+	}
+
+	c.JSONP(http.StatusOK, &SendData{
+		HTTPStatus: rd.Problem.Update(),
+	})
 }
 
 func getSubmit(c *gin.Context) {
@@ -187,25 +338,50 @@ func authLogin(c *gin.Context) {
 }
 
 func authAdmin(c *gin.Context) {
-	fmt.Println("auth admin")
-	fmt.Println(c.Request.Body)
-
-	var loginInfo LoginInfo
-	err := c.BindJSON(&loginInfo)
-	if err != nil{
-		// fmt.Println(err)
-		c.JSONP(http.StatusNotFound, nil)
+	type ReceiveData struct {
+		LoginInfo LoginInfo `json:"loginInfo"`
+		Problem   Problem   `json:"problem"`
 	}
-	httpStatus := loginInfo.AuthAdmin()
 	type Tmp struct {
 		HTTPStatus HTTPStatus `json:"httpStatus"`
 	}
+
+	data, err := c.GetRawData()
+	if err != nil {
+		c.JSONP(http.StatusNotFound, Tmp{
+			HTTPStatus: HTTPStatus{
+				Message:     "服务器发生错误",
+				IsError:     true,
+				SubMessage:  "get data error",
+				RequestPath: "authAdmin",
+			},
+		})
+	}
+	var rd ReceiveData
+	err = json.Unmarshal(data, &rd)
+	if err != nil {
+		c.JSONP(http.StatusNotFound, Tmp{
+			HTTPStatus: HTTPStatus{
+				Message:     "服务器发生错误",
+				IsError:     true,
+				SubMessage:  "json unmarshal error",
+				RequestPath: "authAdmin",
+			},
+		})
+	}
+
+	httpStatus := rd.LoginInfo.AuthAdmin()
+
 	var tmp Tmp
 	tmp.HTTPStatus = httpStatus
 
 	if tmp.HTTPStatus.IsError {
 		c.JSONP(http.StatusNotFound, tmp)
 	}
+
+	c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+
+	c.Next()
 }
 
 func loginByUser(c *gin.Context) {

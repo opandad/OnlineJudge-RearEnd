@@ -3,6 +3,7 @@ package web
 import (
 	"OnlineJudge-RearEnd/api/database"
 	"errors"
+	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -95,8 +96,12 @@ func (problem Problem) Delete() HTTPStatus {
 			Method:      "",
 		}
 	}
+	// var contestsHasProblem ContestsHasProblem
+	// mdb.Where("problem_id = ?", problem.ID).Delete(&contestsHasProblem)
 	err = mdb.Delete(&problem).Error
 	if err != nil {
+		fmt.Println(err)
+
 		return HTTPStatus{
 			Message:     "删除出错！",
 			IsError:     true,

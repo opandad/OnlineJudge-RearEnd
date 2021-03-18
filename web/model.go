@@ -8,12 +8,10 @@ package web
 	UsersJoinContest
 */
 
-// type ContestsHasProblem struct {
-// 	ContestsId int     `json:"contestsID"`
-// 	Contest    Contest `json:"contest"`
-// 	ProblemsId int     `json:"problemsID"`
-// 	Problem    Problem `json:"problem"`
-// }
+type ContestsHasProblem struct {
+	ContestsId int `json:"contestsID"`
+	ProblemsId int `json:"problemsID"`
+}
 
 type ContestInfo struct {
 }
@@ -55,7 +53,8 @@ type ProblemDescription struct {
 }
 
 type ProblemJudgeerInfo struct {
-	ProblemPath string `json:"problemPath"`
+	ProblemPath        string             `json:"problemPath"`
+	ProblemJudgeConfig ProblemJudgeConfig `json:"problemConfig"`
 }
 
 type Problem struct {
@@ -94,13 +93,10 @@ type Submit struct {
 // type EntryInfo struct {
 // }
 
-// type UsersJoinContest struct {
-// 	UsersId    int       `json:"userID"`
-// 	User       User      `json:"user"`
-// 	ContestsId int       `json:"contestID"`
-// 	Contest    Contest   `json:"contest"`
-// 	EntryInfo  EntryInfo `json:"entryInfo"`
-// }
+type UsersJoinContest struct {
+	UsersId    int `json:"userID"`
+	ContestsId int `json:"contestID"`
+}
 
 type UserInfo struct {
 }
@@ -114,12 +110,10 @@ type User struct {
 	Contests  []Contest `gorm:"many2many:users_join_contests;"`
 }
 
-// type ContestsSupportLanguage struct {
-// 	ContestsId  int      `json:"contestsID" gorm:"primaryKey"`
-// 	Contest     Contest  `json:"contest"`
-// 	LanguagesId int      `json:"languagesID" gorm:"primaryKey"`
-// 	Language    Language `json:"language"`
-// }
+type ContestsSupportLanguage struct {
+	ContestsId  int `json:"contestsID" gorm:"primaryKey"`
+	LanguagesId int `json:"languagesID" gorm:"primaryKey"`
+}
 
 type Team struct {
 	Team   string `json:"team"`
@@ -253,7 +247,7 @@ type SpecialJudge struct {
 	CheckerCases       string `json:"checker_cases"`
 }
 
-type ProblemJudgeInfo struct {
+type ProblemJudgeConfig struct {
 	TestCase      []TestCase   `json:"test_case"`
 	TimeLimit     int          `json:"time_limit"`
 	MemoryLimit   int          `json:"memory_limit"`

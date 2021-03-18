@@ -183,12 +183,6 @@ func (submit Submit) List(pageIndex int, pageSize int) ([]Submit, HTTPStatus, in
 	var total int64
 	mdb.Table("submits").Where(&submit).Count(&total).Order("id desc").Offset((pageIndex - 1) * pageSize).Limit(pageSize).Find(&submits)
 
-	// for i := 0; i < len(submits); i++ {
-
-	// }
-	// fmt.Println(submit)
-	// fmt.Println(total)
-
 	return submits, HTTPStatus{
 		Message:     "",
 		IsError:     false,
