@@ -3,6 +3,7 @@ package web
 import (
 	"OnlineJudge-RearEnd/api/database"
 	"context"
+	"fmt"
 )
 
 /*
@@ -173,7 +174,7 @@ func (contest Contest) Detail(userID int) (Contest, []Problem, []Language, HTTPS
 // 	return HTTPStatus{}
 // }
 
-func (contest Contest) Insert() HTTPStatus {
+func (contest Contest) Insert(problems []Problem, languages []Language, users []User) HTTPStatus {
 	mdb, err := database.ReconnectMysqlDatabase()
 	if err != nil {
 		return HTTPStatus{
@@ -181,17 +182,33 @@ func (contest Contest) Insert() HTTPStatus {
 			IsError:     true,
 			ErrorCode:   500,
 			SubMessage:  "mysql database connect fail",
-			RequestPath: "contest.rank",
+			RequestPath: "contest.insert",
 			Method:      "",
 		}
 	}
 
-	mdb.Create(&contest)
+	fmt.Println("contest insert")
+	fmt.Println(contest)
+	fmt.Println(problems)
+	fmt.Println(languages)
+	fmt.Println(users)
 
-	return HTTPStatus{}
+	ctx := context.Background()
+	tx := mdb.WithContext(ctx)
+
+	tx.Table("contests").Create(&contest)
+	tx.Model(&contest).Association("Languages").Append(&languages)
+	tx.Model(&contest).Association("Problems").Append(&problems)
+	tx.Model(&contest).Association("Users").Append(&users)
+
+	return HTTPStatus{
+		Message:     "添加成功",
+		IsError:     false,
+		RequestPath: "contest insert",
+	}
 }
 
-func (contest Contest) Update() HTTPStatus {
+func (contest Contest) Update(problems []Problem, languages []Language, users []User) HTTPStatus {
 	mdb, err := database.ReconnectMysqlDatabase()
 	if err != nil {
 		return HTTPStatus{
@@ -199,14 +216,30 @@ func (contest Contest) Update() HTTPStatus {
 			IsError:     true,
 			ErrorCode:   500,
 			SubMessage:  "mysql database connect fail",
-			RequestPath: "contest.rank",
+			RequestPath: "contest.update",
 			Method:      "",
 		}
 	}
 
-	mdb.Save(&contest)
+	fmt.Println("contest update")
+	fmt.Println(contest)
+	fmt.Println(problems)
+	fmt.Println(languages)
+	fmt.Println(users)
 
-	return HTTPStatus{}
+	ctx := context.Background()
+	tx := mdb.WithContext(ctx)
+
+	tx.Table("contests").Save(&contest)
+	tx.Model(&contest).Association("Languages").Replace(&languages)
+	tx.Model(&contest).Association("Problems").Replace(&problems)
+	tx.Model(&contest).Association("Users").Replace(&users)
+
+	return HTTPStatus{
+		Message:     "修改成功",
+		IsError:     false,
+		RequestPath: "contest update",
+	}
 }
 
 /*
@@ -236,7 +269,7 @@ func (contest Contest) Update() HTTPStatus {
 // 	return HTTPStatus{}
 // }
 
-func (contest Contest) GetEdit() (Contest, []Problem, []Language, HTTPStatus, []User) {
+func (contest Contest) GetEdit() (Contest, []Problem, []Language, HTTPStatus, []User, []Language) {
 	mdb, err := database.ReconnectMysqlDatabase()
 	if err != nil {
 		return Contest{}, []Problem{}, []Language{}, HTTPStatus{
@@ -246,7 +279,7 @@ func (contest Contest) GetEdit() (Contest, []Problem, []Language, HTTPStatus, []
 			SubMessage:  "mysql database connect fail",
 			RequestPath: "contest.detail",
 			Method:      "",
-		}, []User{}
+		}, []User{}, []Language{}
 	}
 
 	//链式操作
@@ -256,11 +289,13 @@ func (contest Contest) GetEdit() (Contest, []Problem, []Language, HTTPStatus, []
 	var users []User
 	var problems []Problem
 	var languages []Language
+	var selectLanguages []Language
 
 	tx.Where(&contest).First(&contest)
-	tx.Model(&contest).Association("Users").Find(&users)
-	tx.Model(&contest).Association("Problems").Find(&problems)
+	tx.Model(&contest).Select("id").Association("Users").Find(&users)
+	tx.Model(&contest).Select("id").Association("Problems").Find(&problems)
 	tx.Model(&contest).Association("Languages").Find(&languages)
+	tx.Find(&selectLanguages)
 
 	// fmt.Println("problems: ", problems)
 	// fmt.Println("languages", languages)
@@ -272,5 +307,5 @@ func (contest Contest) GetEdit() (Contest, []Problem, []Language, HTTPStatus, []
 		SubMessage:  "",
 		RequestPath: "contest.detail",
 		Method:      "GetContestDetail",
-	}, users
+	}, users, selectLanguages
 }

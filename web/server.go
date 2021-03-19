@@ -110,10 +110,42 @@ func Init() {
 		admin.POST("/problem/add", addProblem)
 		admin.DELETE("/problem/delete/:id", deleteProblem)
 		admin.POST("/contest/edit/:id", getContestEdit)
-		admin.POST("/user/list")
+		admin.PUT("/contest/edit/:id", editContest)
+		admin.POST("/contest/add", addProblem)
+		// admin.POST("/user/list")
 	}
 
 	router.Run(configs.REAREND_SERVER_IP + ":" + configs.REAREND_SERVER_PORT)
+}
+
+func editContest(c *gin.Context) {
+	type ReceiveData struct {
+		Contest   Contest    `json:"contest"`
+		Problems  []Problem  `json:"problems"`
+		Languages []Language `json:"languages"`
+		Users     []User     `json:"users"`
+	}
+	type SendData struct {
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+	}
+
+	var rd ReceiveData
+
+	err := c.BindJSON(&rd)
+	if err != nil {
+		c.JSONP(http.StatusOK, SendData{
+			HTTPStatus: HTTPStatus{
+				Message:     "服务器发生错误",
+				IsError:     true,
+				SubMessage:  "json解析错误",
+				RequestPath: "edit contest",
+			},
+		})
+	}
+
+	c.JSONP(http.StatusOK, SendData{
+		HTTPStatus: rd.Contest.Update(rd.Problems, rd.Languages, rd.Users),
+	})
 }
 
 func getContestEdit(c *gin.Context) {
@@ -127,15 +159,16 @@ func getContestEdit(c *gin.Context) {
 	contest.ID = id
 
 	type SendData struct {
-		HTTPStatus HTTPStatus `json:"httpStatus"`
-		Contest    Contest    `json:"contest"`
-		Users      []User     `json:"users"`
-		Problems   []Problem  `json:"problems"`
-		Languages  []Language `json:"languages"`
+		HTTPStatus      HTTPStatus `json:"httpStatus"`
+		Contest         Contest    `json:"contest"`
+		Users           []User     `json:"users"`
+		Problems        []Problem  `json:"problems"`
+		Languages       []Language `json:"languages"`
+		SelectLanguages []Language `json:"selectLanguages"`
 	}
 
 	var sendData SendData
-	sendData.Contest, sendData.Problems, sendData.Languages, sendData.HTTPStatus, sendData.Users = contest.GetEdit()
+	sendData.Contest, sendData.Problems, sendData.Languages, sendData.HTTPStatus, sendData.Users, sendData.SelectLanguages = contest.GetEdit()
 
 	c.JSONP(http.StatusOK, sendData)
 }
@@ -200,12 +233,32 @@ func deleteProblem(c *gin.Context) {
 
 func addProblem(c *gin.Context) {
 	type ReceiveData struct {
-		Problem Problem `json:"problem"`
+		Contest   Contest    `json:"contest"`
+		Problems  []Problem  `json:"problems"`
+		Languages []Language `json:"languages"`
+		Users     []User     `json:"users"`
 	}
-	var rd ReceiveData
-	c.BindJSON(&rd)
+	type SendData struct {
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+	}
 
-	c.JSONP(http.StatusOK, rd.Problem.Insert())
+	var rd ReceiveData
+
+	err := c.BindJSON(&rd)
+	if err != nil {
+		c.JSONP(http.StatusOK, SendData{
+			HTTPStatus: HTTPStatus{
+				Message:     "服务器发生错误",
+				IsError:     true,
+				SubMessage:  "json解析错误",
+				RequestPath: "edit contest",
+			},
+		})
+	}
+
+	c.JSONP(http.StatusOK, SendData{
+		HTTPStatus: rd.Contest.Insert(rd.Problems, rd.Languages, rd.Users),
+	})
 }
 
 func editProblem(c *gin.Context) {
@@ -245,8 +298,7 @@ func getSubmit(c *gin.Context) {
 		return
 	}
 
-	var submit Submit
-	submits, httpStatus, total := submit.List(rd.Page.PageIndex, rd.Page.PageSize)
+	submits, httpStatus, total := rd.Submit.List(rd.Page.PageIndex, rd.Page.PageSize)
 
 	type Tmp struct {
 		Submits    []Submit   `json:"submit"`

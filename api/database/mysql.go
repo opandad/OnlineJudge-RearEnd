@@ -79,8 +79,10 @@ db (*gorm.DB)
 func ReconnectMysqlDatabase() (*gorm.DB, error) {
 	//debug模式
 	if configs.DATABASE_LOG_MODE_DEBUG {
-		// var err error
-		// MYSQL_CONNECT, err = sql.Open(ReturnMysqlConfig())
+		//test时候开
+		var err error
+		MYSQL_CONNECT, err = sql.Open(ReturnMysqlConfig())
+
 		newLogger := logger.New(
 			log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 			logger.Config{

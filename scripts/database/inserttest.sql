@@ -16,4 +16,4 @@ INSERT INTO `languages` (`id`, `language`) VALUES (6, "golang");
 INSERT INTO `online_judge`.`contests_support_languages` (`contest_id`, `language_id`) VALUES (1, 1);
 INSERT INTO `users_join_contests` (`user_id`, `contest_id`) VALUES (1, 1);
 INSERT INTO `contests_has_problems` (`contest_id`, `problem_id`) VALUES (1, 1);
-INSERT INTO `submits` (`id`, `submit_state`, `submit_time`, `problem_id`, `contest_id`,`language_id`,  `user_id`, `submit_info`, `is_error`, `submit_code`) VALUES (1, "Accept", "2021-01-08 12:00:00", 1, 1, 1, 1, "{}", false, "");
+INSERT INTO `submits` (`id`, `submit_state`, `submit_time`, `problem_id`, `contest_id`,`language_id`,  `user_id`, `submit_info`, `is_error`, `submit_code`) VALUES (1, "Accepted", "2021-01-08 12:00:00", 1, 1, 1, 1, "{}", false, "");
