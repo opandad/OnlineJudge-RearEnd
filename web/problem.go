@@ -2,7 +2,6 @@ package web
 
 import (
 	"OnlineJudge-RearEnd/api/database"
-	"OnlineJudge-RearEnd/api/problem_data"
 	"OnlineJudge-RearEnd/configs"
 	"OnlineJudge-RearEnd/utils"
 	"errors"
@@ -76,7 +75,7 @@ func (problem Problem) Insert() HTTPStatus {
 		}
 	}
 
-	problem_data.MoveUploadFile(problem.ID)
+	problem.MoveUploadFile(problem.ID)
 
 	return HTTPStatus{
 		Message:     "题目添加成功",
