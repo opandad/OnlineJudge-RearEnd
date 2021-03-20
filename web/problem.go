@@ -2,8 +2,16 @@ package web
 
 import (
 	"OnlineJudge-RearEnd/api/database"
+	"OnlineJudge-RearEnd/api/problem_data"
+	"OnlineJudge-RearEnd/configs"
+	"OnlineJudge-RearEnd/utils"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"sort"
+	"strconv"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -55,6 +63,7 @@ func (problem Problem) Insert() HTTPStatus {
 			Method:      "",
 		}
 	}
+
 	err = mdb.Create(&problem).Error
 	if err != nil {
 		return HTTPStatus{
@@ -66,6 +75,8 @@ func (problem Problem) Insert() HTTPStatus {
 			Method:      "",
 		}
 	}
+
+	problem_data.MoveUploadFile(problem.ID)
 
 	return HTTPStatus{
 		Message:     "题目添加成功",
@@ -274,4 +285,97 @@ func (problem Problem) Detail() (Problem, HTTPStatus) {
 		RequestPath: "problem.detail",
 		Method:      "GetProblemDetail",
 	}
+}
+
+//<================= 其他函数 文件校验 ============>
+
+func (problem Problem) CheckUploadFiles() bool {
+	files, _ := ioutil.ReadDir(configs.JUDGER_UPLOAD_TEMP_FILE_PATH)
+
+	num := len(files)
+
+	if num%2 != 0 {
+		os.RemoveAll(configs.JUDGER_UPLOAD_TEMP_FILE_PATH)
+		fmt.Println("文件缺失")
+		return false
+	}
+
+	type File struct {
+		Name   string
+		Suffix string
+	}
+
+	var file []File
+
+	file = make([]File, num)
+
+	for i, f := range files {
+		strs := strings.Split(f.Name(), ".")
+		file[i].Name = strs[0]
+		file[i].Suffix = strs[1]
+	}
+
+	sort.SliceStable(file, func(i, j int) bool {
+		if file[i].Suffix != file[j].Suffix {
+			return file[i].Suffix < file[j].Suffix
+		}
+
+		return file[i].Name < file[j].Name
+	})
+
+	for i, j := 0, num/2; i < num/2; {
+		if (file[i].Name == file[j].Name) && (file[i].Suffix == "in" && file[j].Suffix == "out") {
+		} else {
+			fmt.Println("文件格式错误")
+			os.RemoveAll(configs.JUDGER_UPLOAD_TEMP_FILE_PATH)
+			return false
+		}
+
+		i++
+		j++
+	}
+
+	fmt.Println("校验文件成功")
+	return true
+}
+
+func (problem Problem) MoveUploadFile(problemID int) {
+	files, _ := ioutil.ReadDir(configs.JUDGER_UPLOAD_TEMP_FILE_PATH)
+
+	pathExists, err := utils.PathExists(configs.JUDGER_WORK_PATH + strconv.Itoa(problemID) + "/")
+	if err == nil && pathExists == false {
+		os.Mkdir(configs.JUDGER_WORK_PATH+strconv.Itoa(problemID)+"/", os.ModePerm)
+	} else if err != nil && pathExists == false {
+		fmt.Println(err)
+	}
+
+	for _, f := range files {
+		// fmt.Println(f.Name())
+		os.Rename(configs.JUDGER_UPLOAD_TEMP_FILE_PATH+f.Name(), configs.JUDGER_WORK_PATH+strconv.Itoa(problemID)+"/"+f.Name())
+	}
+}
+
+func (problem Problem) ReturnProblemDataConfig() []TestCase {
+	var testCase []TestCase
+
+	files, _ := ioutil.ReadDir(configs.JUDGER_UPLOAD_TEMP_FILE_PATH)
+
+	var len int = len(files)
+
+	testCase = make([]TestCase, len/2)
+
+	i := 0
+	for _, f := range files {
+		strs := strings.Split(f.Name(), ".")
+		if strs[1] == ".in" {
+			testCase[i].Handle = strs[0]
+			testCase[i].Name = "Test #" + strs[0]
+			testCase[i].Input = strs[0] + ".in"
+			testCase[i].Output = strs[0] + ".out"
+			testCase[i].Enable = true
+			i++
+		}
+	}
+
+	return testCase
 }

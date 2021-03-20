@@ -1,6 +1,7 @@
 package web
 
 import (
+	"OnlineJudge-RearEnd/api/problem_data"
 	"OnlineJudge-RearEnd/api/verification"
 	"OnlineJudge-RearEnd/configs"
 	"bytes"
@@ -9,6 +10,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"path"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -60,8 +63,8 @@ func Init() {
 	router.POST("/snowflakeID", authSnowflakeID)
 	router.POST("/authLogin", authLogin)
 
-	router.OPTIONS("/upload", handleOption)
-	router.POST("/upload", upload)
+	router.OPTIONS("/uploadProblemData", handleOption)
+	router.POST("/uploadProblemData", uploadProblemData)
 
 	//需要添加函数
 	account := router.Group("/account")
@@ -111,7 +114,7 @@ func Init() {
 		admin.DELETE("/problem/delete/:id", deleteProblem)
 		admin.POST("/contest/edit/:id", getContestEdit)
 		admin.PUT("/contest/edit/:id", editContest)
-		admin.POST("/contest/add", addProblem)
+		// admin.POST("/contest/add")
 		// admin.POST("/user/list")
 	}
 
@@ -177,12 +180,17 @@ func handleOption(c *gin.Context) {
 	c.JSONP(http.StatusOK, nil)
 }
 
-func upload(c *gin.Context) {
-	// str := c.Request.Body
-	// fmt.Println(str)
+func uploadProblemData(c *gin.Context) {
+	isPathExists, err := problem_data.PathExists(configs.JUDGER_UPLOAD_TEMP_FILE_PATH)
+	if isPathExists == false {
+		if err == nil {
+			os.Mkdir(configs.JUDGER_UPLOAD_TEMP_FILE_PATH, os.ModePerm)
+		} else {
+			return
+		}
+	}
 
-	// Multipart form
-	err := c.Request.ParseMultipartForm(32 << 20) // 32Mb
+	err = c.Request.ParseMultipartForm(32 << 20) // 32Mb
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -193,18 +201,18 @@ func upload(c *gin.Context) {
 		fmt.Println(err)
 	}
 
-	fmt.Println(form)
+	// fmt.Println(form)
 
-	files := form.File["file"]
+	files := form.File["files"]
 
-	for i, file := range files {
-		fmt.Println(i)
-		fmt.Println(file.Filename)
+	for _, file := range files {
+		dst := path.Join(configs.JUDGER_UPLOAD_TEMP_FILE_PATH, file.Filename)
 
+		fmt.Println(dst)
 		// 上传文件至指定目录
-		c.SaveUploadedFile(file, configs.JUDGER_UPLOAD_TEMP_FILE_PATH)
+		c.SaveUploadedFile(file, dst)
 	}
-	fmt.Printf("%d files uploaded!", len(files))
+	// fmt.Printf("%d files uploaded!", len(files))
 	c.Next()
 }
 
@@ -232,18 +240,26 @@ func deleteProblem(c *gin.Context) {
 }
 
 func addProblem(c *gin.Context) {
-	type ReceiveData struct {
-		Contest   Contest    `json:"contest"`
-		Problems  []Problem  `json:"problems"`
-		Languages []Language `json:"languages"`
-		Users     []User     `json:"users"`
-	}
 	type SendData struct {
 		HTTPStatus HTTPStatus `json:"httpStatus"`
 	}
 
-	var rd ReceiveData
+	if problem_data.CheckUploadFiles() == false {
+		c.JSONP(http.StatusOK, SendData{
+			HTTPStatus: HTTPStatus{
+				Message:     "上传的题目数据文件有缺，请刷新页面重新上传文件",
+				IsError:     true,
+				SubMessage:  "上传的题目数据文件有缺",
+				RequestPath: "add problem",
+			},
+		})
+	}
 
+	type ReceiveData struct {
+		Problem Problem `json:"problem"`
+	}
+
+	var rd ReceiveData
 	err := c.BindJSON(&rd)
 	if err != nil {
 		c.JSONP(http.StatusOK, SendData{
@@ -251,17 +267,33 @@ func addProblem(c *gin.Context) {
 				Message:     "服务器发生错误",
 				IsError:     true,
 				SubMessage:  "json解析错误",
-				RequestPath: "edit contest",
+				RequestPath: "add problem",
 			},
 		})
 	}
 
-	c.JSONP(http.StatusOK, SendData{
-		HTTPStatus: rd.Contest.Insert(rd.Problems, rd.Languages, rd.Users),
-	})
+	// c.JSONP(http.StatusOK, SendData{
+	// 	HTTPStatus: rd.Problem.Insert(),
+	// })
 }
 
 func editProblem(c *gin.Context) {
+	type SendData struct {
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+	}
+
+	if problem_data.CheckUploadFiles() == false {
+		c.JSONP(http.StatusOK, SendData{
+			HTTPStatus: HTTPStatus{
+				Message:     "上传的题目数据文件有缺，请刷新页面重新上传文件",
+				IsError:     true,
+				SubMessage:  "error data files",
+				RequestPath: "edit problem",
+			},
+		})
+		return
+	}
+
 	type ReceiveData struct {
 		LoginInfo LoginInfo `json:"loginInfo"`
 		Problem   Problem   `json:"problem"`
@@ -270,14 +302,11 @@ func editProblem(c *gin.Context) {
 	var rd ReceiveData
 
 	err := c.BindJSON(&rd)
-	// fmt.Println(rd)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	type SendData struct {
-		HTTPStatus HTTPStatus `json:"httpStatus"`
-	}
+	problem_data.MoveUploadFile(rd.Problem.ID)
 
 	c.JSONP(http.StatusOK, &SendData{
 		HTTPStatus: rd.Problem.Update(),
