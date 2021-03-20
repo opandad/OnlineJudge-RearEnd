@@ -1,9 +1,9 @@
 package web
 
 import (
-	"OnlineJudge-RearEnd/api/problem_data"
 	"OnlineJudge-RearEnd/api/verification"
 	"OnlineJudge-RearEnd/configs"
+	"OnlineJudge-RearEnd/utils"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -181,7 +181,7 @@ func handleOption(c *gin.Context) {
 }
 
 func uploadProblemData(c *gin.Context) {
-	isPathExists, err := problem_data.PathExists(configs.JUDGER_UPLOAD_TEMP_FILE_PATH)
+	isPathExists, err := utils.PathExists(configs.JUDGER_UPLOAD_TEMP_FILE_PATH)
 	if isPathExists == false {
 		if err == nil {
 			os.Mkdir(configs.JUDGER_UPLOAD_TEMP_FILE_PATH, os.ModePerm)
@@ -244,17 +244,6 @@ func addProblem(c *gin.Context) {
 		HTTPStatus HTTPStatus `json:"httpStatus"`
 	}
 
-	if problem_data.CheckUploadFiles() == false {
-		c.JSONP(http.StatusOK, SendData{
-			HTTPStatus: HTTPStatus{
-				Message:     "上传的题目数据文件有缺，请刷新页面重新上传文件",
-				IsError:     true,
-				SubMessage:  "上传的题目数据文件有缺",
-				RequestPath: "add problem",
-			},
-		})
-	}
-
 	type ReceiveData struct {
 		Problem Problem `json:"problem"`
 	}
@@ -272,6 +261,17 @@ func addProblem(c *gin.Context) {
 		})
 	}
 
+	if rd.Problem.CheckUploadFiles() == false {
+		c.JSONP(http.StatusOK, SendData{
+			HTTPStatus: HTTPStatus{
+				Message:     "上传的题目数据文件有缺，请刷新页面重新上传文件",
+				IsError:     true,
+				SubMessage:  "上传的题目数据文件有缺",
+				RequestPath: "add problem",
+			},
+		})
+	}
+
 	// c.JSONP(http.StatusOK, SendData{
 	// 	HTTPStatus: rd.Problem.Insert(),
 	// })
@@ -280,18 +280,6 @@ func addProblem(c *gin.Context) {
 func editProblem(c *gin.Context) {
 	type SendData struct {
 		HTTPStatus HTTPStatus `json:"httpStatus"`
-	}
-
-	if problem_data.CheckUploadFiles() == false {
-		c.JSONP(http.StatusOK, SendData{
-			HTTPStatus: HTTPStatus{
-				Message:     "上传的题目数据文件有缺，请刷新页面重新上传文件",
-				IsError:     true,
-				SubMessage:  "error data files",
-				RequestPath: "edit problem",
-			},
-		})
-		return
 	}
 
 	type ReceiveData struct {
@@ -306,7 +294,19 @@ func editProblem(c *gin.Context) {
 		fmt.Println(err)
 	}
 
-	problem_data.MoveUploadFile(rd.Problem.ID)
+	if rd.Problem.CheckUploadFiles() == false {
+		c.JSONP(http.StatusOK, SendData{
+			HTTPStatus: HTTPStatus{
+				Message:     "上传的题目数据文件有缺，请刷新页面重新上传文件",
+				IsError:     true,
+				SubMessage:  "error data files",
+				RequestPath: "edit problem",
+			},
+		})
+		return
+	}
+
+	rd.Problem.MoveUploadFile(rd.Problem.ID)
 
 	c.JSONP(http.StatusOK, &SendData{
 		HTTPStatus: rd.Problem.Update(),
