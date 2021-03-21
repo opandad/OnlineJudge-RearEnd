@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"time"
 
 	"gorm.io/gorm"
@@ -120,8 +121,10 @@ func (submit Submit) SubmitAnswer() HTTPStatus {
 	fmt.Println("写入了n个字节: ", n)
 	defer f.Close()
 
+	fmt.Println(configs.JUDGER_WORK_PATH + strconv.Itoa(submit.ProblemId) + "/problem.json")
+
 	//执行判题机
-	result, err := judger.Judger(configs.JUDGER_WORK_PATH+problem[0].JudgeerInfo.ProblemPath, configs.JUDGER_SUBMIT_PATH+submitCodeFileName, language.Language)
+	result, err := judger.Judger(configs.JUDGER_WORK_PATH+strconv.Itoa(submit.ProblemId)+"/problem.json", configs.JUDGER_SUBMIT_PATH+submitCodeFileName, language.Language)
 	if err != nil {
 		fmt.Println(err)
 

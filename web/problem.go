@@ -4,6 +4,7 @@ import (
 	"OnlineJudge-RearEnd/api/database"
 	"OnlineJudge-RearEnd/configs"
 	"OnlineJudge-RearEnd/utils"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -77,6 +78,26 @@ func (problem Problem) Insert() HTTPStatus {
 
 	problem.MoveUploadFile(problem.ID)
 
+	problem.JudgeerInfo.ProblemJudgeConfig.TestCase = problem.ReturnProblemDataConfig()
+
+	problem.CopyConfig()
+
+	problem.WriteConfig()
+
+	fmt.Println("insert problem: ", problem)
+
+	err = mdb.Save(&problem).Error
+	if err != nil {
+		return HTTPStatus{
+			Message:     "题目数据添加失败",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "mysql insert fail",
+			RequestPath: "problem.insert",
+			Method:      "",
+		}
+	}
+
 	return HTTPStatus{
 		Message:     "题目添加成功",
 		IsError:     false,
@@ -147,6 +168,7 @@ func (problem Problem) Update() HTTPStatus {
 			Method:      "",
 		}
 	}
+
 	mdb, err := database.ReconnectMysqlDatabase()
 	if err != nil {
 		return HTTPStatus{
@@ -158,6 +180,13 @@ func (problem Problem) Update() HTTPStatus {
 			Method:      "",
 		}
 	}
+	problem.MoveUploadFile(problem.ID)
+	problem.JudgeerInfo.ProblemJudgeConfig.TestCase = problem.ReturnProblemDataConfig()
+	problem.CopyConfig()
+	problem.WriteConfig()
+
+	fmt.Println("update problem: ", problem)
+
 	err = mdb.Save(&problem).Error
 	if err != nil {
 		return HTTPStatus{
@@ -349,7 +378,6 @@ func (problem Problem) MoveUploadFile(problemID int) {
 	}
 
 	for _, f := range files {
-		// fmt.Println(f.Name())
 		os.Rename(configs.JUDGER_UPLOAD_TEMP_FILE_PATH+f.Name(), configs.JUDGER_WORK_PATH+strconv.Itoa(problemID)+"/"+f.Name())
 	}
 }
@@ -357,7 +385,7 @@ func (problem Problem) MoveUploadFile(problemID int) {
 func (problem Problem) ReturnProblemDataConfig() []TestCase {
 	var testCase []TestCase
 
-	files, _ := ioutil.ReadDir(configs.JUDGER_UPLOAD_TEMP_FILE_PATH)
+	files, _ := ioutil.ReadDir(configs.JUDGER_WORK_PATH + strconv.Itoa(problem.ID) + "/")
 
 	var len int = len(files)
 
@@ -365,16 +393,41 @@ func (problem Problem) ReturnProblemDataConfig() []TestCase {
 
 	i := 0
 	for _, f := range files {
+		fmt.Println(f.Name())
+		fmt.Println(i)
+
 		strs := strings.Split(f.Name(), ".")
-		if strs[1] == ".in" {
+		if strs[1] == "in" {
 			testCase[i].Handle = strs[0]
 			testCase[i].Name = "Test #" + strs[0]
 			testCase[i].Input = strs[0] + ".in"
 			testCase[i].Output = strs[0] + ".out"
-			testCase[i].Enable = true
+			testCase[i].Enabled = true
 			i++
 		}
 	}
 
 	return testCase
+}
+
+func (problem *Problem) CopyConfig() {
+	problem.JudgeerInfo.ProblemJudgeConfig.TimeLimit = problem.Description.TimeLimit
+	problem.JudgeerInfo.ProblemJudgeConfig.MemoryLimit = problem.Description.MemoryLimit
+	problem.JudgeerInfo.ProblemJudgeConfig.RealTimeLimit = problem.Description.RealTimeLimit
+	problem.JudgeerInfo.ProblemJudgeConfig.FileSizeLimit = problem.Description.FileSizeLimit
+	problem.JudgeerInfo.ProblemJudgeConfig.UID = -1
+	problem.JudgeerInfo.ProblemJudgeConfig.StrictMode = true
+	// problem.JudgeerInfo.ProblemJudgeConfig.SpecialJudge.Mode = 0
+	// problem.JudgeerInfo.ProblemJudgeConfig.SpecialJudge.Checker = ""
+	// problem.JudgeerInfo.ProblemJudgeConfig.SpecialJudge.RedirectProgramOut = true
+	// problem.JudgeerInfo.ProblemJudgeConfig.SpecialJudge.TimeLimit = problem.Description.TimeLimit
+	// problem.JudgeerInfo.ProblemJudgeConfig.SpecialJudge.MemoryLimit = 2 * problem.Description.MemoryLimit
+}
+
+func (problem Problem) WriteConfig() {
+	content, err := json.Marshal(&problem.JudgeerInfo.ProblemJudgeConfig)
+	err = ioutil.WriteFile(configs.JUDGER_WORK_PATH+strconv.Itoa(problem.ID)+"/problem.json", content, 0644)
+	if err != nil {
+		panic(err)
+	}
 }

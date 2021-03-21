@@ -272,9 +272,9 @@ func addProblem(c *gin.Context) {
 		})
 	}
 
-	// c.JSONP(http.StatusOK, SendData{
-	// 	HTTPStatus: rd.Problem.Insert(),
-	// })
+	c.JSONP(http.StatusOK, SendData{
+		HTTPStatus: rd.Problem.Insert(),
+	})
 }
 
 func editProblem(c *gin.Context) {

@@ -230,32 +230,32 @@ type LoginInfo struct {
 
 //<========================= judger =================>
 type TestCase struct {
-	Handle string `json:"handle"`
-	Name   string `json:"name"`
-	Input  string `json:"input"`
-	Output string `json:"output"`
-	Enable bool   `json:"enable"`
+	Handle  string `json:"handle"`
+	Name    string `json:"name"`
+	Input   string `json:"input"`
+	Output  string `json:"output"`
+	Enabled bool   `json:"enabled"`
 }
 
-type SpecialJudge struct {
-	Mode               int    `json:"mode"`
-	Checker            string `json:"checker"`
-	RedirectProgramOut bool   `json:"redirect_program_out"`
-	TimeLimit          int    `json:"time_limit"`
-	MemoryLimit        int    `json:"memory_limit"`
-	UseTestLib         bool   `json:"use_testlib"`
-	CheckerCases       string `json:"checker_cases"`
-}
+// type SpecialJudge struct {
+// 	Mode               int    `json:"mode"`
+// 	Checker            string `json:"checker"`
+// 	RedirectProgramOut bool   `json:"redirect_program_out"`
+// 	TimeLimit          int    `json:"time_limit"`
+// 	MemoryLimit        int    `json:"memory_limit"`
+// 	UseTestLib         bool   `json:"use_testlib"`
+// 	CheckerCases       string `json:"checker_cases"`
+// }
 
 type ProblemJudgeConfig struct {
-	TestCase      []TestCase   `json:"test_case"`
-	TimeLimit     int          `json:"time_limit"`
-	MemoryLimit   int          `json:"memory_limit"`
-	RealTimeLimit int          `json:"real_time_limit"`
-	FileSizeLimit int          `json:"file_size_limit"`
-	UID           int          `json:"uid"`
-	StrictMode    bool         `json:"strict_mode"`
-	SpecialJudge  SpecialJudge `json:"special_judge"`
+	TestCase      []TestCase `json:"test_cases"`
+	TimeLimit     int        `json:"time_limit"`
+	MemoryLimit   int        `json:"memory_limit"`
+	RealTimeLimit int        `json:"real_time_limit"`
+	FileSizeLimit int        `json:"file_size_limit"`
+	UID           int        `json:"uid"`
+	StrictMode    bool       `json:"strict_mode"`
+	// SpecialJudge  SpecialJudge `json:"special_judge"`
 }
 
 // <====================== end ======================>
