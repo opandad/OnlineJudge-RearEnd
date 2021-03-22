@@ -197,9 +197,29 @@ func (contest Contest) Insert(problems []Problem, languages []Language, users []
 	tx := mdb.WithContext(ctx)
 
 	tx.Table("contests").Create(&contest)
-	tx.Model(&contest).Association("Languages").Append(&languages)
-	tx.Model(&contest).Association("Problems").Append(&problems)
-	tx.Model(&contest).Association("Users").Append(&users)
+	var contestsHasProblem []ContestsHasProblem
+	contestsHasProblem = make([]ContestsHasProblem, len(problems))
+	for i := 0; i < len(problems); i++ {
+		contestsHasProblem[i].ContestId = contest.ID
+		contestsHasProblem[i].ProblemId = problems[i].ID
+	}
+	tx.Create(&contestsHasProblem)
+
+	var contestsSupportLanguage []ContestsSupportLanguage
+	contestsSupportLanguage = make([]ContestsSupportLanguage, len(languages))
+	for i := 0; i < len(languages); i++ {
+		contestsSupportLanguage[i].LanguageId = languages[i].ID
+		contestsSupportLanguage[i].ContestId = contest.ID
+	}
+	tx.Create(&contestsSupportLanguage)
+
+	var usersJoinContest []UsersJoinContest
+	usersJoinContest = make([]UsersJoinContest, len(users))
+	for i := 0; i < len(users); i++ {
+		usersJoinContest[i].ContestId = contest.ID
+		usersJoinContest[i].UserId = users[i].ID
+	}
+	tx.Create(&usersJoinContest)
 
 	return HTTPStatus{
 		Message:     "添加成功",
@@ -221,19 +241,43 @@ func (contest Contest) Update(problems []Problem, languages []Language, users []
 		}
 	}
 
-	fmt.Println("contest update")
-	fmt.Println(contest)
-	fmt.Println(problems)
-	fmt.Println(languages)
-	fmt.Println(users)
+	// fmt.Println("contest update")
+	// fmt.Println(contest)
+	// fmt.Println(problems)
+	// fmt.Println(languages)
+	// fmt.Println(users)
 
 	ctx := context.Background()
 	tx := mdb.WithContext(ctx)
 
 	tx.Table("contests").Save(&contest)
-	tx.Model(&contest).Association("Languages").Replace(&languages)
-	tx.Model(&contest).Association("Problems").Replace(&problems)
-	tx.Model(&contest).Association("Users").Replace(&users)
+
+	tx.Where("contest_id = ?", contest.ID).Delete(ContestsHasProblem{})
+	var contestsHasProblem []ContestsHasProblem
+	contestsHasProblem = make([]ContestsHasProblem, len(problems))
+	for i := 0; i < len(problems); i++ {
+		contestsHasProblem[i].ContestId = contest.ID
+		contestsHasProblem[i].ProblemId = problems[i].ID
+	}
+	tx.Create(&contestsHasProblem)
+
+	var contestsSupportLanguage []ContestsSupportLanguage
+	contestsSupportLanguage = make([]ContestsSupportLanguage, len(languages))
+	tx.Where("contest_id = ?", contest.ID).Delete(ContestsSupportLanguage{})
+	for i := 0; i < len(languages); i++ {
+		contestsSupportLanguage[i].LanguageId = languages[i].ID
+		contestsSupportLanguage[i].ContestId = contest.ID
+	}
+	tx.Create(&contestsSupportLanguage)
+
+	var usersJoinContest []UsersJoinContest
+	usersJoinContest = make([]UsersJoinContest, len(users))
+	tx.Where("contest_id = ?", contest.ID).Delete(UsersJoinContest{})
+	for i := 0; i < len(users); i++ {
+		usersJoinContest[i].ContestId = contest.ID
+		usersJoinContest[i].UserId = users[i].ID
+	}
+	tx.Create(&usersJoinContest)
 
 	return HTTPStatus{
 		Message:     "修改成功",

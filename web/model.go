@@ -9,8 +9,8 @@ package web
 */
 
 type ContestsHasProblem struct {
-	ContestsId int `json:"contestsID"`
-	ProblemsId int `json:"problemsID"`
+	ContestId int `json:"contestsID"`
+	ProblemId int `json:"problemsID"`
 }
 
 type ContestInfo struct {
@@ -94,8 +94,8 @@ type Submit struct {
 // }
 
 type UsersJoinContest struct {
-	UsersId    int `json:"userID"`
-	ContestsId int `json:"contestID"`
+	UserId    int `json:"userID"`
+	ContestId int `json:"contestID"`
 }
 
 type UserInfo struct {
@@ -111,8 +111,8 @@ type User struct {
 }
 
 type ContestsSupportLanguage struct {
-	ContestsId  int `json:"contestsID" gorm:"primaryKey"`
-	LanguagesId int `json:"languagesID" gorm:"primaryKey"`
+	ContestId  int `json:"contestsID" gorm:"primaryKey"`
+	LanguageId int `json:"languagesID" gorm:"primaryKey"`
 }
 
 type Team struct {

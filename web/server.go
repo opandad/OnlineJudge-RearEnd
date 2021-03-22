@@ -114,7 +114,6 @@ func Init() {
 		admin.DELETE("/problem/delete/:id", deleteProblem)
 		admin.POST("/contest/edit/:id", getContestEdit)
 		admin.PUT("/contest/edit/:id", editContest)
-		// admin.POST("/contest/add")
 		// admin.POST("/user/list")
 	}
 
@@ -146,6 +145,15 @@ func editContest(c *gin.Context) {
 		})
 	}
 
+	fmt.Println(rd)
+
+	if rd.Contest.ID == 0 {
+		c.JSONP(http.StatusOK, SendData{
+			HTTPStatus: rd.Contest.Insert(rd.Problems, rd.Languages, rd.Users),
+		})
+		return
+	}
+
 	c.JSONP(http.StatusOK, SendData{
 		HTTPStatus: rd.Contest.Update(rd.Problems, rd.Languages, rd.Users),
 	})
@@ -171,7 +179,12 @@ func getContestEdit(c *gin.Context) {
 	}
 
 	var sendData SendData
-	sendData.Contest, sendData.Problems, sendData.Languages, sendData.HTTPStatus, sendData.Users, sendData.SelectLanguages = contest.GetEdit()
+	if id != 0 {
+		sendData.Contest, sendData.Problems, sendData.Languages, sendData.HTTPStatus, sendData.Users, sendData.SelectLanguages = contest.GetEdit()
+	} else {
+		var language Language
+		sendData.SelectLanguages, sendData.HTTPStatus = language.List()
+	}
 
 	c.JSONP(http.StatusOK, sendData)
 }
