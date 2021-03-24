@@ -91,6 +91,7 @@ func Init() {
 
 	router.GET("/contest", getContestList)
 	router.POST("/contest/:id", getContestDetail)
+	router.GET("/contest/rank/:id", getContestRank)
 
 	//未完成
 	// router.GET("/userInfo/:id")
@@ -114,10 +115,86 @@ func Init() {
 		admin.DELETE("/problem/delete/:id", deleteProblem)
 		admin.POST("/contest/edit/:id", getContestEdit)
 		admin.PUT("/contest/edit/:id", editContest)
-		// admin.POST("/user/list")
+		admin.POST("/user/list", getUsers)
+		admin.POST("/team/list", getTeams)
 	}
 
 	router.Run(configs.REAREND_SERVER_IP + ":" + configs.REAREND_SERVER_PORT)
+}
+
+func getContestRank(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	var submit Submit
+	submit.ContestId = id
+
+	type SendData struct {
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+		AcSubmits  []Submit   `json:"acSubmits"`
+		WaSubmits  []Submit   `json:"waSubmits"`
+		Users      []User     `json:"users"`
+	}
+	var sd SendData
+
+	sd.HTTPStatus, sd.AcSubmits, sd.WaSubmits, sd.Users = submit.Rank()
+	c.JSONP(http.StatusOK, sd)
+}
+
+func getTeams(c *gin.Context) {
+	type SendData struct {
+		Teams      []Team     `json:"teams"`
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+		Total      int64      `json:"total"`
+	}
+
+	var page Page
+	var err error
+	var sd SendData
+	var team Team
+	page.PageIndex, err = strconv.Atoi(c.DefaultQuery("pageIndex", "1"))
+	if err != nil {
+		sd.HTTPStatus.Message = "服务器内部转int错误"
+		sd.HTTPStatus.IsError = true
+	}
+	page.PageSize, err = strconv.Atoi(c.DefaultQuery("pageSize", "10"))
+	if err != nil {
+		sd.HTTPStatus.Message = "服务器内部转int错误"
+		sd.HTTPStatus.IsError = true
+	}
+
+	sd.Teams, sd.HTTPStatus, sd.Total = team.List(page.PageIndex, page.PageSize)
+
+	c.JSONP(http.StatusOK, sd)
+}
+
+func getUsers(c *gin.Context) {
+	type SendData struct {
+		Users      []User     `json:"users"`
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+		Total      int64      `json:"total"`
+	}
+
+	var page Page
+	var err error
+	var sd SendData
+	var user User
+	page.PageIndex, err = strconv.Atoi(c.DefaultQuery("pageIndex", "1"))
+	if err != nil {
+		sd.HTTPStatus.Message = "服务器内部转int错误"
+		sd.HTTPStatus.IsError = true
+	}
+	page.PageSize, err = strconv.Atoi(c.DefaultQuery("pageSize", "10"))
+	if err != nil {
+		sd.HTTPStatus.Message = "服务器内部转int错误"
+		sd.HTTPStatus.IsError = true
+	}
+
+	sd.Users, sd.HTTPStatus, sd.Total = user.List(page.PageIndex, page.PageSize)
+
+	c.JSONP(http.StatusOK, sd)
 }
 
 func editContest(c *gin.Context) {

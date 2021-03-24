@@ -3,7 +3,6 @@ package web
 import (
 	"OnlineJudge-RearEnd/api/database"
 	"context"
-	"fmt"
 )
 
 /*
@@ -187,11 +186,11 @@ func (contest Contest) Insert(problems []Problem, languages []Language, users []
 		}
 	}
 
-	fmt.Println("contest insert")
-	fmt.Println(contest)
-	fmt.Println(problems)
-	fmt.Println(languages)
-	fmt.Println(users)
+	// fmt.Println("contest insert")
+	// fmt.Println(contest)
+	// fmt.Println(problems)
+	// fmt.Println(languages)
+	// fmt.Println(users)
 
 	ctx := context.Background()
 	tx := mdb.WithContext(ctx)

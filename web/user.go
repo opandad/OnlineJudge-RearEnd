@@ -843,3 +843,102 @@ func (loginInfo LoginInfo) AuthAdmin() HTTPStatus {
 		}
 	}
 }
+
+// <============ database ===============>
+func (user User) List(pageIndex int, pageSize int) ([]User, HTTPStatus, int64) {
+	mdb, err := database.ReconnectMysqlDatabase()
+	if err != nil {
+		return []User{}, HTTPStatus{
+			Message:     "服务器出错啦，请稍后重新尝试。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "mysql database connect fail",
+			RequestPath: "user.list",
+			Method:      "",
+		}, 0
+	}
+
+	//分页查询
+	if pageIndex <= 0 || pageSize <= 0 {
+		return []User{}, HTTPStatus{
+			Message:     "非法输入",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "page index or page size input error, error code is error",
+			RequestPath: "user.list",
+			Method:      "",
+		}, 0
+	}
+
+	var users []User
+	var count int64
+	mdb.Table("users").Count(&count).Debug().Offset((pageIndex-1)*pageSize).Limit(pageSize).Select("id", "name").Find(&users)
+	// if err != nil {
+	// 	return []Problem{}, HTTPStatus{
+	// 		Message:     "服务器出错啦，请稍后重新尝试。",
+	// 		IsError:     true,
+	// 		ErrorCode:   500,
+	// 		SubMessage:  "query error",
+	// 		RequestPath: "problem.list",
+	// 		Method:      "",
+	// 	}, 0
+	// }
+
+	return users, HTTPStatus{
+		Message:     "",
+		IsError:     false,
+		ErrorCode:   0,
+		SubMessage:  "",
+		RequestPath: "",
+		Method:      "Get user list",
+	}, count
+}
+
+func (team Team) List(pageIndex int, pageSize int) ([]Team, HTTPStatus, int64) {
+	mdb, err := database.ReconnectMysqlDatabase()
+	if err != nil {
+		return []Team{}, HTTPStatus{
+			Message:     "服务器出错啦，请稍后重新尝试。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "mysql database connect fail",
+			RequestPath: "user.list",
+			Method:      "",
+		}, 0
+	}
+
+	//分页查询
+	if pageIndex <= 0 || pageSize <= 0 {
+		return []Team{}, HTTPStatus{
+			Message:     "非法输入",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "page index or page size input error, error code is error",
+			RequestPath: "user.list",
+			Method:      "",
+		}, 0
+	}
+
+	var teams []Team
+	var count int64
+	mdb.Table("teams").Count(&count).Debug().Offset((pageIndex - 1) * pageSize).Limit(pageSize).Find(&teams)
+	// if err != nil {
+	// 	return []Problem{}, HTTPStatus{
+	// 		Message:     "服务器出错啦，请稍后重新尝试。",
+	// 		IsError:     true,
+	// 		ErrorCode:   500,
+	// 		SubMessage:  "query error",
+	// 		RequestPath: "problem.list",
+	// 		Method:      "",
+	// 	}, 0
+	// }
+
+	return teams, HTTPStatus{
+		Message:     "",
+		IsError:     false,
+		ErrorCode:   0,
+		SubMessage:  "",
+		RequestPath: "",
+		Method:      "Get user list",
+	}, count
+}
