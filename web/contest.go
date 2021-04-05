@@ -119,6 +119,7 @@ func (contest Contest) Detail(userID int) (Contest, []Problem, []Language, HTTPS
 	var users []User
 	ctx := context.Background()
 	tx := mdb.WithContext(ctx)
+	tx.First(&contest)
 	tx.Model(&contest).Where("user_id = ?", userID).Association("Users").Find(&users)
 
 	if len(users) <= 0 {

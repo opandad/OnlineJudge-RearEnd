@@ -65,6 +65,8 @@ func Init() {
 
 	router.OPTIONS("/uploadProblemData", handleOption)
 	router.POST("/uploadProblemData", uploadProblemData)
+	router.OPTIONS("/uploadTeamData", handleOption)
+	// router.POST("/uploadTeamData", uploadTeamData)
 
 	//需要添加函数
 	account := router.Group("/account")
@@ -122,6 +124,44 @@ func Init() {
 	router.Run(configs.REAREND_SERVER_IP + ":" + configs.REAREND_SERVER_PORT)
 }
 
+// func uploadTeamData(c *gin.Context) {
+// 	isPathExists, err := utils.PathExists(configs.JUDGER_UPLOAD_TEMP_FILE_PATH)
+// 	if isPathExists == false {
+// 		if err == nil {
+// 			os.Mkdir(configs.JUDGER_UPLOAD_TEMP_FILE_PATH, os.ModePerm)
+// 		} else {
+// 			return
+// 		}
+// 	}
+
+// 	err = c.Request.ParseMultipartForm(32 << 20) // 32Mb
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		return
+// 	}
+
+// 	form, err := c.MultipartForm()
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+
+// 	// fmt.Println(form)
+
+// 	files := form.File["files"]
+
+// 	for _, file := range files {
+// 		dst := path.Join(configs.JUDGER_UPLOAD_TEMP_FILE_PATH, file.Filename)
+// 		fmt.Println(dst)
+// 		// 上传文件至指定目录
+// 		c.SaveUploadedFile(file, dst)
+
+// 		excel.HandleTeam(dst)
+// 	}
+// 	// fmt.Printf("%d files uploaded!", len(files))
+
+// 	c.JSONP(http.StatusOK, "")
+// }
+
 func getContestRank(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -133,13 +173,12 @@ func getContestRank(c *gin.Context) {
 
 	type SendData struct {
 		HTTPStatus HTTPStatus `json:"httpStatus"`
-		AcSubmits  []Submit   `json:"acSubmits"`
-		WaSubmits  []Submit   `json:"waSubmits"`
+		Submits    []Submit   `json:"submits"`
 		Users      []User     `json:"users"`
 	}
 	var sd SendData
 
-	sd.HTTPStatus, sd.AcSubmits, sd.WaSubmits, sd.Users = submit.Rank()
+	sd.HTTPStatus, sd.Submits, sd.Users = submit.Rank()
 	c.JSONP(http.StatusOK, sd)
 }
 

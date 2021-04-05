@@ -17,7 +17,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (submit Submit) Rank() (HTTPStatus, []Submit, []Submit, []User) {
+func (submit Submit) Rank() (HTTPStatus, []Submit, []User) {
 	mdb, err := database.ReconnectMysqlDatabase()
 	if err != nil {
 		return HTTPStatus{
@@ -27,30 +27,30 @@ func (submit Submit) Rank() (HTTPStatus, []Submit, []Submit, []User) {
 			SubMessage:  "mysql database connect fail",
 			RequestPath: "submit.submit",
 			Method:      "",
-		}, []Submit{}, []Submit{}, []User{}
+		}, []Submit{}, []User{}
 	}
 
 	ctx := context.Background()
 	tx := mdb.WithContext(ctx)
 
-	var acSubmit, waSubmit []Submit
+	var submits []Submit
 	submit.IsError = true
-	tx.Where(&submit).Find(&waSubmit)
+	tx.Find(&submits)
 
-	submit.IsError = false
-	submit.SubmitState = "Accepted"
-	tx.Where(&submit).Find(&acSubmit)
+	// submit.IsError = false
+	// submit.SubmitState = "Accepted"
+	// tx.Where(&submit).Find(&acSubmit)
 
 	var contest Contest
 	contest.ID = submit.ContestId
 	var users []User
-	fmt.Println(contest)
+	// fmt.Println(contest)
 
 	ctx = context.Background()
 	tx = mdb.WithContext(ctx)
 	tx.Model(&contest).Association("Users").Find(&users)
 
-	return HTTPStatus{Message: "", IsError: false, RequestPath: "submit rank"}, acSubmit, waSubmit, users
+	return HTTPStatus{Message: "", IsError: false, RequestPath: "submit rank"}, submits, users
 }
 
 //非0验证
