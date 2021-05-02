@@ -66,7 +66,7 @@ func Init() {
 	router.OPTIONS("/uploadProblemData", handleOption)
 	router.POST("/uploadProblemData", uploadProblemData)
 	router.OPTIONS("/uploadTeamData", handleOption)
-	// router.POST("/uploadTeamData", uploadTeamData)
+	router.POST("/uploadTeamData", uploadTeamData)
 
 	//需要添加函数
 	account := router.Group("/account")
@@ -85,6 +85,8 @@ func Init() {
 		{
 			verifyCode.POST("/email", getEmailVerifyCode)
 		}
+
+		account.GET("/userInfo/:id", getUserInfo)
 	}
 
 	//problem
@@ -119,48 +121,99 @@ func Init() {
 		admin.PUT("/contest/edit/:id", editContest)
 		admin.POST("/user/list", getUsers)
 		admin.POST("/team/list", getTeams)
+		admin.POST("/team/add", addTeams)
 	}
 
 	router.Run(configs.REAREND_SERVER_IP + ":" + configs.REAREND_SERVER_PORT)
 }
 
-// func uploadTeamData(c *gin.Context) {
-// 	isPathExists, err := utils.PathExists(configs.JUDGER_UPLOAD_TEMP_FILE_PATH)
-// 	if isPathExists == false {
-// 		if err == nil {
-// 			os.Mkdir(configs.JUDGER_UPLOAD_TEMP_FILE_PATH, os.ModePerm)
-// 		} else {
-// 			return
-// 		}
-// 	}
+func getUserInfo(c *gin.Context) {
+	// fmt.Print("get user info")
 
-// 	err = c.Request.ParseMultipartForm(32 << 20) // 32Mb
-// 	if err != nil {
-// 		fmt.Println(err)
-// 		return
-// 	}
+	id, err := strconv.Atoi(c.Param("id"))
 
-// 	form, err := c.MultipartForm()
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
+	if err != nil {
+		c.JSONP(http.StatusOK, HTTPStatus{
+			Message:    "服务器发生错误",
+			IsError:    true,
+			SubMessage: "无法解析id",
+		})
+	}
+	// fmt.Println(id)
 
-// 	// fmt.Println(form)
+	var user User
+	user.ID = id
+	user, httpStatus := user.GetUserInfo()
 
-// 	files := form.File["files"]
+	fmt.Println(user, httpStatus)
 
-// 	for _, file := range files {
-// 		dst := path.Join(configs.JUDGER_UPLOAD_TEMP_FILE_PATH, file.Filename)
-// 		fmt.Println(dst)
-// 		// 上传文件至指定目录
-// 		c.SaveUploadedFile(file, dst)
+	type Tmp struct {
+		User       User       `json:"user"`
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+	}
 
-// 		excel.HandleTeam(dst)
-// 	}
-// 	// fmt.Printf("%d files uploaded!", len(files))
+	var tmp Tmp
+	tmp.User = user
+	tmp.HTTPStatus = httpStatus
 
-// 	c.JSONP(http.StatusOK, "")
-// }
+	c.JSONP(http.StatusOK, tmp)
+}
+
+func addTeams(c *gin.Context) {
+	// fmt.Println("????")
+
+	type Tmp struct {
+		LoginInfo LoginInfo `json:"loginInfo"`
+		TeamNum   int       `json:"teamNum"`
+	}
+	var tmp Tmp
+	c.BindJSON(&tmp)
+
+	// fmt.Println(tmp)
+
+	var team Team
+	c.JSONP(http.StatusOK, team.AddTeamsByHTML(tmp.TeamNum))
+}
+
+func uploadTeamData(c *gin.Context) {
+	isPathExists, err := utils.PathExists(configs.JUDGER_UPLOAD_TEMP_FILE_PATH)
+	if isPathExists == false {
+		if err == nil {
+			os.Mkdir(configs.JUDGER_UPLOAD_TEMP_FILE_PATH, os.ModePerm)
+		} else {
+			return
+		}
+	}
+
+	err = c.Request.ParseMultipartForm(32 << 20) // 32Mb
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// fmt.Println(form)
+
+	files := form.File["files"]
+
+	for _, file := range files {
+		dst := path.Join(configs.JUDGER_UPLOAD_TEMP_FILE_PATH, file.Filename)
+		fmt.Println(dst)
+		// 上传文件至指定目录
+		c.SaveUploadedFile(file, dst)
+
+		var team Team
+		c.JSONP(http.StatusOK, team.AddTeamsByExcel(dst))
+
+		fmt.Print("uploadTeamData")
+		return
+	}
+	// fmt.Printf("%d files uploaded!", len(files))
+}
 
 func getContestRank(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
@@ -186,7 +239,7 @@ func getTeams(c *gin.Context) {
 	type SendData struct {
 		Teams      []Team     `json:"teams"`
 		HTTPStatus HTTPStatus `json:"httpStatus"`
-		Total      int64      `json:"total"`
+		Page       Page       `json:"page"`
 	}
 
 	var page Page
@@ -204,7 +257,7 @@ func getTeams(c *gin.Context) {
 		sd.HTTPStatus.IsError = true
 	}
 
-	sd.Teams, sd.HTTPStatus, sd.Total = team.List(page.PageIndex, page.PageSize)
+	sd.Teams, sd.HTTPStatus, sd.Page = team.List(page.PageIndex, page.PageSize)
 
 	c.JSONP(http.StatusOK, sd)
 }

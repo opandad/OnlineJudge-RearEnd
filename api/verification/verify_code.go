@@ -37,6 +37,5 @@ RandVerifyCode
 func RandVerificationCode() string {
 	rand.Seed(time.Now().Unix())
 	randNum := rand.Intn(899999) + 100000
-	time.Sleep(time.Second)
 	return strconv.Itoa(randNum)
 }

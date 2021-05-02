@@ -27,12 +27,6 @@ type Contest struct {
 	Problems    []Problem   `gorm:"many2many:contests_has_problems;"`
 }
 
-type Email struct {
-	Email  string `json:"email"`
-	UserID int    `json:"userID"`
-	User   User   `json:"user"`
-}
-
 type Language struct {
 	ID       int       `json:"id"`
 	Language string    `json:"language"`
@@ -58,17 +52,25 @@ type ProblemJudgeerInfo struct {
 }
 
 type Problem struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-
-	// Description string `json:"Description"` //json
+	ID          int                `json:"id"`
+	Name        string             `json:"name"`
 	Description ProblemDescription `json:"description"`
 
-	IsHideToUser   bool `json:"isHideToUser"`
-	IsRobotProblem bool `json:"isRobotProblem"`
-	// JudgeerInfo    string `json:"judggerInfo"` //json
-	JudgeerInfo ProblemJudgeerInfo `json:"judgeerInfo"`
-	Contests    []Contest          `gorm:"many2many:contests_has_problems;"`
+	IsHideToUser   bool               `json:"isHideToUser"`
+	IsRobotProblem bool               `json:"isRobotProblem"`
+	JudgeerInfo    ProblemJudgeerInfo `json:"judgeerInfo"`
+	Contests       []Contest          `gorm:"many2many:contests_has_problems;"`
+}
+
+type ProblemJudgeConfig struct {
+	TestCase      []TestCase `json:"test_cases"`
+	TimeLimit     int        `json:"time_limit"`
+	MemoryLimit   int        `json:"memory_limit"`
+	RealTimeLimit int        `json:"real_time_limit"`
+	FileSizeLimit int        `json:"file_size_limit"`
+	UID           int        `json:"uid"`
+	StrictMode    bool       `json:"strict_mode"`
+	// SpecialJudge  SpecialJudge `json:"special_judge"`
 }
 
 type SubmitInfo struct {
@@ -99,6 +101,8 @@ type UsersJoinContest struct {
 }
 
 type UserInfo struct {
+	Phone string `json:"phone"`
+	QQ    string `json:"qq"`
 }
 
 type User struct {
@@ -110,15 +114,21 @@ type User struct {
 	Contests  []Contest `gorm:"many2many:users_join_contests;"`
 }
 
-type ContestsSupportLanguage struct {
-	ContestId  int `json:"contestsID" gorm:"primaryKey"`
-	LanguageId int `json:"languagesID" gorm:"primaryKey"`
-}
-
 type Team struct {
 	Team   string `json:"team"`
 	UserID int    `json:"userID"`
 	User   User   `json:"user"`
+}
+
+type Email struct {
+	Email  string `json:"email"`
+	UserID int    `json:"userID"`
+	User   User   `json:"user"`
+}
+
+type ContestsSupportLanguage struct {
+	ContestId  int `json:"contestsID" gorm:"primaryKey"`
+	LanguageId int `json:"languagesID" gorm:"primaryKey"`
 }
 
 /*
@@ -246,16 +256,5 @@ type TestCase struct {
 // 	UseTestLib         bool   `json:"use_testlib"`
 // 	CheckerCases       string `json:"checker_cases"`
 // }
-
-type ProblemJudgeConfig struct {
-	TestCase      []TestCase `json:"test_cases"`
-	TimeLimit     int        `json:"time_limit"`
-	MemoryLimit   int        `json:"memory_limit"`
-	RealTimeLimit int        `json:"real_time_limit"`
-	FileSizeLimit int        `json:"file_size_limit"`
-	UID           int        `json:"uid"`
-	StrictMode    bool       `json:"strict_mode"`
-	// SpecialJudge  SpecialJudge `json:"special_judge"`
-}
 
 // <====================== end ======================>

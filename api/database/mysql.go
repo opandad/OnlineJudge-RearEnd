@@ -43,13 +43,13 @@ func ReturnMysqlConfig() (string, string) {
 ConnectMysqlDatabase
 
 @description
-返回一个Mysql数据库连接，这里可以接着修改成返回多种数据库配置
+初始化数据库连接，并且将初始化完的数据库连接赋值到全局变量里
 
 @param
 nil
 
 @return
-db (*sql.DB)
+nil
 */
 func InitMysqlDatabase() {
 	var err error
@@ -80,8 +80,8 @@ func ReconnectMysqlDatabase() (*gorm.DB, error) {
 	//debug模式
 	if configs.DATABASE_LOG_MODE_DEBUG {
 		//test时候开
-		// var err error
-		// MYSQL_CONNECT, err = sql.Open(ReturnMysqlConfig())
+		var err error
+		MYSQL_CONNECT, err = sql.Open(ReturnMysqlConfig())
 
 		newLogger := logger.New(
 			log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer

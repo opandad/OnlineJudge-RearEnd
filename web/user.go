@@ -3,6 +3,7 @@ package web
 import (
 	"OnlineJudge-RearEnd/api/database"
 	"OnlineJudge-RearEnd/api/email"
+	"OnlineJudge-RearEnd/api/excel"
 	"OnlineJudge-RearEnd/api/verification"
 	"context"
 	"encoding/json"
@@ -514,6 +515,28 @@ func (account Email) SendVerifyCode() HTTPStatus {
 	<==========================user账号相关=============================>
 */
 
+func (account User) GetUserInfo() (User, HTTPStatus) {
+	mdb, err := database.ReconnectMysqlDatabase()
+	if err != nil {
+		return User{}, HTTPStatus{
+			Message:     "服务器出错啦，请稍后重新尝试。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "mysql database connect fail",
+			RequestPath: "user.login",
+			Method:      "",
+		}
+	}
+
+	mdb.First(&account)
+
+	return account, HTTPStatus{
+		IsError:     false,
+		ErrorCode:   0,
+		RequestPath: "user: get user info",
+	}
+}
+
 /*
 @Title
 User.Login
@@ -894,7 +917,7 @@ func (user User) List(pageIndex int, pageSize int) ([]User, HTTPStatus, int64) {
 	}, count
 }
 
-func (team Team) List(pageIndex int, pageSize int) ([]Team, HTTPStatus, int64) {
+func (team Team) List(pageIndex int, pageSize int) ([]Team, HTTPStatus, Page) {
 	mdb, err := database.ReconnectMysqlDatabase()
 	if err != nil {
 		return []Team{}, HTTPStatus{
@@ -904,7 +927,7 @@ func (team Team) List(pageIndex int, pageSize int) ([]Team, HTTPStatus, int64) {
 			SubMessage:  "mysql database connect fail",
 			RequestPath: "user.list",
 			Method:      "",
-		}, 0
+		}, Page{}
 	}
 
 	//分页查询
@@ -916,12 +939,16 @@ func (team Team) List(pageIndex int, pageSize int) ([]Team, HTTPStatus, int64) {
 			SubMessage:  "page index or page size input error, error code is error",
 			RequestPath: "user.list",
 			Method:      "",
-		}, 0
+		}, Page{}
 	}
 
 	var teams []Team
 	var count int64
+	var page Page
 	mdb.Table("teams").Count(&count).Debug().Offset((pageIndex - 1) * pageSize).Limit(pageSize).Find(&teams)
+	page.PageIndex = pageIndex
+	page.PageSize = pageSize
+	page.Total64 = count
 	// if err != nil {
 	// 	return []Problem{}, HTTPStatus{
 	// 		Message:     "服务器出错啦，请稍后重新尝试。",
@@ -940,5 +967,90 @@ func (team Team) List(pageIndex int, pageSize int) ([]Team, HTTPStatus, int64) {
 		SubMessage:  "",
 		RequestPath: "",
 		Method:      "Get user list",
-	}, count
+	}, page
+}
+
+func (team Team) AddTeamsByExcel(filePath string) HTTPStatus {
+	data, err := excel.ReadTeam(filePath)
+	if err != nil {
+		return HTTPStatus{
+			Message:     "文件读取失败",
+			IsError:     true,
+			RequestPath: "team.add teams by excel",
+		}
+	}
+	// fmt.Println(data)
+
+	mdb, err := database.ReconnectMysqlDatabase()
+	if err != nil {
+		return HTTPStatus{
+			Message:     "服务器出错啦，请稍后重新尝试。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "mysql database connect fail",
+			RequestPath: "team.add team by excel",
+			Method:      "",
+		}
+	}
+
+	var count int64
+	mdb.Table("teams").Count(&count)
+	teams := make([]Team, len(data)-1)
+	for i := 1; i < len(data); i++ {
+		teams[i-1].User.Name = data[i][0]
+		teams[i-1].User.UserInfo.Phone = data[i][1]
+		teams[i-1].User.UserInfo.QQ = data[i][2]
+		teams[i-1].User.Authority = "user"
+		teams[i-1].User.Password = verification.RandVerificationCode()
+		teams[i-1].Team = "team" + strconv.Itoa(int(count)+i)
+	}
+	mdb.Create(&teams)
+
+	fmt.Println(teams)
+
+	return HTTPStatus{
+		Message:     "成功，号码从" + strconv.Itoa(int(count)+1) + "开始，截止至" + strconv.Itoa(int(count)+len(data)-1),
+		IsError:     false,
+		ErrorCode:   0,
+		SubMessage:  "",
+		RequestPath: "team.add team by excel",
+		Method:      "",
+	}
+}
+
+func (team Team) AddTeamsByHTML(count int) HTTPStatus {
+	mdb, err := database.ReconnectMysqlDatabase()
+	if err != nil {
+		return HTTPStatus{
+			Message:     "服务器出错啦，请稍后重新尝试。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "mysql database connect fail",
+			RequestPath: "team.add team by excel",
+			Method:      "",
+		}
+	}
+
+	var cnt int64
+	mdb.Table("teams").Count(&cnt)
+	teams := make([]Team, count)
+	for i := 1; i <= count; i++ {
+		teams[i-1].User.Name = "队伍" + strconv.Itoa(i+int(cnt))
+		teams[i-1].User.Authority = "user"
+		teams[i-1].User.Password = verification.RandVerificationCode()
+		teams[i-1].Team = "team" + strconv.Itoa(int(cnt)+i)
+		fmt.Print("正在添加第%d个", i)
+	}
+	mdb.Create(&teams)
+
+	fmt.Println(teams)
+
+	return HTTPStatus{
+		Message:     "成功，号码从" + strconv.Itoa(int(cnt)+1) + "开始，截止至" + strconv.Itoa(int(cnt)+count),
+		IsError:     false,
+		ErrorCode:   0,
+		SubMessage:  "",
+		RequestPath: "team.add team by excel",
+		Method:      "",
+	}
 }
