@@ -33,9 +33,11 @@ func (submit Submit) Rank() (HTTPStatus, []Submit, []User) {
 	ctx := context.Background()
 	tx := mdb.WithContext(ctx)
 
+	// fmt.Println(submit)
+
 	var submits []Submit
 	submit.IsError = true
-	tx.Find(&submits)
+	tx.Where("contest_id = ?", submit.ContestId).Find(&submits)
 
 	// submit.IsError = false
 	// submit.SubmitState = "Accepted"

@@ -73,7 +73,7 @@ func Init() {
 	{
 		login := account.Group("/login")
 		{
-			login.POST("/user", loginByUser)
+			login.POST("/team", loginByTeam)
 			login.POST("/email", loginByEmail)
 		}
 		account.POST("/logout", logout)
@@ -120,6 +120,7 @@ func Init() {
 		admin.POST("/contest/edit/:id", getContestEdit)
 		admin.PUT("/contest/edit/:id", editContest)
 		admin.POST("/user/list", getUsers)
+		admin.POST("/email/list", getEmails)
 		admin.POST("/team/list", getTeams)
 		admin.POST("/team/add", addTeams)
 	}
@@ -258,6 +259,33 @@ func getTeams(c *gin.Context) {
 	}
 
 	sd.Teams, sd.HTTPStatus, sd.Page = team.List(page.PageIndex, page.PageSize)
+
+	c.JSONP(http.StatusOK, sd)
+}
+
+func getEmails(c *gin.Context) {
+	type SendData struct {
+		Emails     []Email    `json:"emails"`
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+		Page       Page       `json:"page"`
+	}
+
+	var page Page
+	var err error
+	var sd SendData
+	var email Email
+	page.PageIndex, err = strconv.Atoi(c.DefaultQuery("pageIndex", "1"))
+	if err != nil {
+		sd.HTTPStatus.Message = "服务器内部转int错误"
+		sd.HTTPStatus.IsError = true
+	}
+	page.PageSize, err = strconv.Atoi(c.DefaultQuery("pageSize", "10"))
+	if err != nil {
+		sd.HTTPStatus.Message = "服务器内部转int错误"
+		sd.HTTPStatus.IsError = true
+	}
+
+	sd.Emails, sd.HTTPStatus, sd.Page = email.List(page.PageIndex, page.PageSize)
 
 	c.JSONP(http.StatusOK, sd)
 }
@@ -647,11 +675,34 @@ func authAdmin(c *gin.Context) {
 	c.Next()
 }
 
-func loginByUser(c *gin.Context) {
+func loginByTeam(c *gin.Context) {
+	// var frontEndData FrontEndData
+	var loginInfo LoginInfo
+	err := c.BindJSON(&loginInfo)
+	if err != nil {
+		fmt.Println(err)
+	}
+	var team Team
+	team.Team = loginInfo.Account
+	team.User.Password = loginInfo.Password
 
-	// var user User
+	userID, authority, userName, httpStatus := team.Login(loginInfo.SnowflakeID)
 
-	// User.Login()
+	loginInfo.UserID = userID
+	loginInfo.Password = team.User.Password
+	loginInfo.Authority = authority
+	loginInfo.UserName = userName
+
+	type TmpStruct struct {
+		HTTPStatus HTTPStatus `json:"httpStatus"`
+		LoginInfo  LoginInfo  `json:"loginInfo"`
+	}
+
+	var tmp TmpStruct
+	tmp.LoginInfo = loginInfo
+	tmp.HTTPStatus = httpStatus
+
+	c.JSONP(http.StatusOK, tmp)
 }
 
 func loginByEmail(c *gin.Context) {
@@ -715,7 +766,7 @@ func registByEmail(c *gin.Context) {
 	}
 	var tmp Tmp
 	tmp.User, tmp.HTTPStatus = email.Regist(loginInfo.SnowflakeID, loginInfo.VerifyCode)
-	if tmp.HTTPStatus.IsError == false {
+	if tmp.HTTPStatus.IsError == true {
 		c.JSONP(http.StatusBadRequest, tmp)
 	} else {
 		c.JSONP(http.StatusOK, tmp)

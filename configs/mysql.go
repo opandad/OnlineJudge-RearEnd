@@ -21,5 +21,5 @@ const (
 	DATABASE_MYSQL_CONNMAXLIFETIME time.Duration = time.Hour
 
 	//Database log mode debug
-	DATABASE_LOG_MODE_DEBUG bool = true
+	DATABASE_LOG_MODE_DEBUG bool = false
 )

@@ -895,7 +895,7 @@ func (user User) List(pageIndex int, pageSize int) ([]User, HTTPStatus, int64) {
 
 	var users []User
 	var count int64
-	mdb.Table("users").Count(&count).Debug().Offset((pageIndex-1)*pageSize).Limit(pageSize).Select("id", "name").Find(&users)
+	mdb.Table("users").Count(&count).Debug().Offset((pageIndex - 1) * pageSize).Limit(pageSize).Find(&users)
 	// if err != nil {
 	// 	return []Problem{}, HTTPStatus{
 	// 		Message:     "服务器出错啦，请稍后重新尝试。",
@@ -970,6 +970,59 @@ func (team Team) List(pageIndex int, pageSize int) ([]Team, HTTPStatus, Page) {
 	}, page
 }
 
+func (email Email) List(pageIndex int, pageSize int) ([]Email, HTTPStatus, Page) {
+	mdb, err := database.ReconnectMysqlDatabase()
+	if err != nil {
+		return []Email{}, HTTPStatus{
+			Message:     "服务器出错啦，请稍后重新尝试。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "mysql database connect fail",
+			RequestPath: "email.list",
+			Method:      "",
+		}, Page{}
+	}
+
+	//分页查询
+	if pageIndex <= 0 || pageSize <= 0 {
+		return []Email{}, HTTPStatus{
+			Message:     "非法输入",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "page index or page size input error, error code is error",
+			RequestPath: "email.list",
+			Method:      "",
+		}, Page{}
+	}
+
+	var emails []Email
+	var count int64
+	var page Page
+	mdb.Table("emails").Count(&count).Debug().Offset((pageIndex - 1) * pageSize).Limit(pageSize).Find(&emails)
+	page.PageIndex = pageIndex
+	page.PageSize = pageSize
+	page.Total64 = count
+	// if err != nil {
+	// 	return []Problem{}, HTTPStatus{
+	// 		Message:     "服务器出错啦，请稍后重新尝试。",
+	// 		IsError:     true,
+	// 		ErrorCode:   500,
+	// 		SubMessage:  "query error",
+	// 		RequestPath: "problem.list",
+	// 		Method:      "",
+	// 	}, 0
+	// }
+
+	return emails, HTTPStatus{
+		Message:     "",
+		IsError:     false,
+		ErrorCode:   0,
+		SubMessage:  "",
+		RequestPath: "",
+		Method:      "Get email list",
+	}, page
+}
+
 func (team Team) AddTeamsByExcel(filePath string) HTTPStatus {
 	data, err := excel.ReadTeam(filePath)
 	if err != nil {
@@ -1039,7 +1092,7 @@ func (team Team) AddTeamsByHTML(count int) HTTPStatus {
 		teams[i-1].User.Authority = "user"
 		teams[i-1].User.Password = verification.RandVerificationCode()
 		teams[i-1].Team = "team" + strconv.Itoa(int(cnt)+i)
-		fmt.Print("正在添加第%d个", i)
+		// fmt.Print("正在添加第%d个", i)
 	}
 	mdb.Create(&teams)
 
@@ -1052,5 +1105,99 @@ func (team Team) AddTeamsByHTML(count int) HTTPStatus {
 		SubMessage:  "",
 		RequestPath: "team.add team by excel",
 		Method:      "",
+	}
+}
+
+func (account Team) Login(websocketID string) (int, string, string, HTTPStatus) {
+	mdb, err := database.ReconnectMysqlDatabase()
+	if err != nil {
+		return -1, "", "", HTTPStatus{
+			Message:     "服务器出错啦，请稍后重新尝试。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "mysql database connect fail",
+			RequestPath: "team.login",
+			Method:      "",
+		}
+	}
+	rdb, err := database.ConnectRedisDatabase(0)
+	if err != nil {
+		return -1, "", "", HTTPStatus{
+			Message:     "服务器出错啦，请稍后重新尝试。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "redis database connect fail",
+			RequestPath: "team.login",
+			Method:      "",
+		}
+	}
+
+	ctx := context.Background()
+	tx := mdb.WithContext(ctx)
+
+	var teamAccount Team
+	teamAccount.Team = account.Team
+	//未查询到账号
+	if errors.Is(tx.Where("team = ?", teamAccount.Team).Find(&teamAccount).Error, gorm.ErrRecordNotFound) {
+		return -1, "", "", HTTPStatus{
+			Message:     "账号或密码出错啦！",
+			IsError:     true,
+			ErrorCode:   406,
+			SubMessage:  "account or password error",
+			RequestPath: "team.login",
+			Method:      "",
+		}
+	}
+
+	tx.Model(&teamAccount).Association("User").Find(&teamAccount.User)
+
+	//TODO 加密，和数据库比较
+
+	if teamAccount.User.Password != account.User.Password {
+		return -1, "", "", HTTPStatus{
+			Message:     "账号或密码出错啦！",
+			IsError:     true,
+			ErrorCode:   406,
+			SubMessage:  "account or password error",
+			RequestPath: "email.login",
+			Method:      "",
+		}
+	}
+
+	//数据记录并转换json
+	var userData UserData
+	userData.WebsocketID = websocketID
+	userData.Authority = teamAccount.User.Authority
+	jsonData, err := json.Marshal(userData)
+	if err != nil {
+		return -1, "", "", HTTPStatus{
+			Message:     "服务器出错啦。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "json marshal fail",
+			RequestPath: "team.login",
+			Method:      "",
+		}
+	}
+
+	err = rdb.Set(ctx, strconv.Itoa(teamAccount.User.ID), jsonData, time.Minute*30).Err()
+	if err != nil {
+		return -1, "", "", HTTPStatus{
+			Message:     "服务器出错啦。",
+			IsError:     true,
+			ErrorCode:   500,
+			SubMessage:  "redis database set fail",
+			RequestPath: "team.login",
+			Method:      "",
+		}
+	}
+
+	return teamAccount.User.ID, teamAccount.User.Authority, teamAccount.User.Name, HTTPStatus{
+		Message:     "登录成功！",
+		IsError:     false,
+		ErrorCode:   0,
+		SubMessage:  "",
+		RequestPath: "team.login",
+		Method:      "LoginByTeam",
 	}
 }
